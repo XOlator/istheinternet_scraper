@@ -10,6 +10,16 @@ class WebSite < ActiveRecord::Base
   include Dnsruby
   include Whois
 
+  # Geo information for server
+  extend Geocoder::Model::ActiveRecord
+  geocoded_by :server_ip_address do |obj,results|
+    if geo = results.first
+      obj.server_geo_country  = geo.country_code
+      obj.server_geo_region   = geo.state_code
+      obj.server_geo_city     = geo.city
+    end
+  end
+
   # File storage for DNS record
   include Paperclip::Glue
   has_attached_file :whois_record, 
@@ -27,7 +37,7 @@ class WebSite < ActiveRecord::Base
 
   # --- Validations -----------------------------------------------------------
 
-  serialize :nameservers, Array
+  after_validation :geocode, :if => lambda{ |obj| !obj.server_ip_address.blank? && obj.server_ip_address_changed? }
 
 
   # --- Methods ---------------------------------------------------------------
@@ -109,7 +119,13 @@ class WebSite < ActiveRecord::Base
         self.domain_created_on = c.created_on
         self.domain_updated_on = c.updated_on
         self.domain_expires_on = c.expires_on
-        self.nameservers = c.nameservers.map{|c| c.name}
+
+        self.nameservers = c.nameservers.map{|c| c.name}.join(',')
+
+        c.nameservers.each do |ns|
+          self.server_ip_address = Resolv.new.getaddress(ns.name) rescue nil
+          break unless self.server_ip_address.blank?
+        end
 
         self.save
       end

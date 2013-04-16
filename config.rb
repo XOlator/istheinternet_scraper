@@ -18,7 +18,7 @@ CRAWLER_USER_AGENT = "WhatColor.IsTheInter.net/#{CRAWLER_VERSION} (http://whatco
 
 
 # REQUIRE MODULES/GEMS
-%w{yaml oj crack json active_record rmagick paperclip friendly_id dnsruby whois will_paginate will_paginate/active_record}.each{|r| require r}
+%w{yaml oj crack json active_record rmagick paperclip friendly_id geocoder geocoder/models/active_record dnsruby whois will_paginate will_paginate/active_record}.each{|r| require r}
 
 # INITIALIZERS
 Dir.glob("#{APP_ROOT}/initializers/*.rb").each{|r| require r}
