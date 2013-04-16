@@ -5,8 +5,8 @@ Encoding.default_internal = "UTF-8"
 
 
 # PRE-DEFINED VARS
-TIME_START    = Time.now
-TEXT_COL_LEN  = 80
+TIME_START    ||= Time.now
+TEXT_COL_LEN  ||= 80
 
 APP_ROOT  ||= File.expand_path(File.dirname(__FILE__))
 APP_ENV   ||= 'development'
@@ -18,7 +18,7 @@ CRAWLER_USER_AGENT = "WhatColor.IsTheInter.net/#{CRAWLER_VERSION} (http://whatco
 
 
 # REQUIRE MODULES/GEMS
-%w{yaml oj crack json active_record rmagick paperclip friendly_id will_paginate will_paginate/active_record}.each{|r| require r}
+%w{yaml oj crack json active_record rmagick paperclip friendly_id dnsruby whois will_paginate will_paginate/active_record}.each{|r| require r}
 
 # INITIALIZERS
 Dir.glob("#{APP_ROOT}/initializers/*.rb").each{|r| require r}

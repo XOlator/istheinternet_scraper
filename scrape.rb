@@ -21,15 +21,10 @@ _heading('Scraper')
 
 _subheading("Parsing #{census_file}")
 
-['http://www.google.com'].each do |u|
-  site = WebSite.find(get_url_host(u)) rescue nil
-  site ||= WebSite.create(:url => u, :host_url => get_url_host(u))
-
-  puts site.inspect
-  site.rescrape_robots_txt! if site.rescrape_robots_txt?
-
-  puts site.robots_txt_allow?(URI.join(u, '/ads/preferences').to_s)
-  
+['http://www.google.com', 'http://www.facebook.com', 'https://www.twitter.com', 'http://www.xolator.com'].each do |u|
+  # _debug(u, 1)
+  site = get_website(u)
+  # _debug(site.allow?(URI.join(u, '/ads').to_s), 2)
 end
 
 

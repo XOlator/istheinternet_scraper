@@ -12,12 +12,12 @@ class CreateWebSites < ActiveRecord::Migration
       t.datetime      :robots_txt_updated_at
 
       # DNS record information -- store as text file with key info in db
-      t.string        :dns_record_file_name
-      t.datetime      :dns_record_updated_at
+      t.string        :whois_record_file_name
+      t.datetime      :whois_record_updated_at
       t.string        :nameservers
-      t.datetime      :domain_registered_at
-      t.datetime      :domain_updated_at
-      t.datetime      :domain_expires_at
+      t.datetime      :domain_created_on
+      t.datetime      :domain_updated_on
+      t.datetime      :domain_expires_on
 
       # Server information
       t.string        :server_ip_address,                   :length => 15

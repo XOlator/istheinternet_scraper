@@ -22,7 +22,8 @@ gem 'friendly_id',              '4.0.9'
 # API Intgrations
 gem 'geocoder',                 '1.1.6'
 gem 'aws-sdk',                  '1.8.5'
-
+gem 'dnsruby',                  '1.53'
+gem 'whois',                    '3.1.1'
 
 # Monitoring
 gem 'errplane',                 '0.6.7'
