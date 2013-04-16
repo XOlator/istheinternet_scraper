@@ -1,0 +1,8 @@
+.DS_Store
+._*
+database.yml
+config.yml
+.rspec
+coverage/
+public/storage
+Gemfile.lock
