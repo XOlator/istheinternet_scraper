@@ -7,3 +7,4 @@ coverage/
 public/storage
 Gemfile.lock
 chromedriver.log
+tmp/
