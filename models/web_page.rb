@@ -19,6 +19,8 @@ class WebPage < ActiveRecord::Base
 
   belongs_to :web_site
 
+  serialize :headers, Hash
+
 
   # --- Validations -----------------------------------------------------------
 
@@ -32,7 +34,7 @@ class WebPage < ActiveRecord::Base
   end
 
   # --- HTML scrape methods ---
-  def rescrape?; !!self.available? && !self.html_page.exists?; end
+  def rescrape?; !!self.available? && !self.html_page.exists?; true; end
 
   def rescrape!
     begin
@@ -43,6 +45,7 @@ class WebPage < ActiveRecord::Base
         self.html_page = io
 
         # Additional information
+        self.headers = io.meta.to_hash
         self.base_uri = io.base_uri.to_s # redirect?
         self.last_modified_at = io.last_modified
         self.charset = io.charset
