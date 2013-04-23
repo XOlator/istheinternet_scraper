@@ -21,10 +21,9 @@ _heading('Scraper')
 
 _subheading("Parsing #{census_file}")
 
-['http://www.google.com', 'http://www.facebook.com', 'https://www.twitter.com', 'http://www.xolator.com'].each do |u|
-  # _debug(u, 1)
-  site = get_website(u)
-  # _debug(site.allow?(URI.join(u, '/ads').to_s), 2)
+['http://metafetch.com/chdfsfsejian/sdfsd', 'http://fffff.at/shaved-bieber', 'https://www.twitter.com/gleuch', 'http://www.xolator.com'].each do |u|
+  _debug(u, 1)
+  page = get_webpage(u)
 end
 
 

@@ -1,0 +1,39 @@
+class CreateWebPages < ActiveRecord::Migration
+
+  def change
+    create_table :web_pages do |t|
+      # Base URL information
+      t.integer       :web_site_id
+      t.string        :url
+      t.string        :path
+      t.string        :slug
+
+      # HTML -- store as text file with key info in db
+      t.string        :html_page_file_name
+      t.integer       :html_page_file_size
+      t.datetime      :html_page_updated_at
+
+      # Meta information
+      t.boolean       :available,                   :default => true
+      t.string        :base_uri
+      t.integer       :page_status
+      t.text          :headers
+      t.string        :charset
+      t.datetime      :last_modified_at
+
+      # Screenshot
+      t.string        :screenshot_file_name
+      t.integer       :screenshot_file_size
+      t.string        :screenshot_content_type
+      t.datetime      :screenshot_file_updated_at
+
+      # Miscellaneous info
+      t.datetime      :created_at
+      t.datetime      :updated_at
+    end
+
+    add_index :web_pages, [:url], :unique => true
+    add_index :web_pages, [:web_site_id, :slug], :unique => true
+  end
+
+end
