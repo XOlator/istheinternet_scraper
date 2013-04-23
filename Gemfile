@@ -19,6 +19,10 @@ gem 'paperclip',                '3.4.1'
 gem 'friendly_id',              '4.0.9'
 # gem 'pony',                     '1.4'
 
+# Screenshot processing
+gem 'headless',                 '1.0.1'
+gem 'selenium-webdriver',       '2.32.1'
+
 # API Intgrations
 gem 'geocoder',                 '1.1.6'
 gem 'aws-sdk',                  '1.8.5'

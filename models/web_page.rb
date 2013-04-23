@@ -13,7 +13,9 @@ class WebPage < ActiveRecord::Base
     :styles =>  {:original => {:format => :html, :processors => [:save_html]}}
     # :default_url => 'https://popblock-assets.s3.amazonaws.com/user/missing/:attachment_:style.:extension',
     # :storage => :s3, :s3_credentials => "#{APP_ROOT}/s3.yml", 
-
+  has_attached_file :screenshot, 
+    :path => "#{APP_ROOT}/public/storage/web_pages/:attachment/:id_partition/:style.:extension",
+    :styles => {:thumbnail => ["300x300#", :jpg], :pixel => ["1x>", :png]}
 
   # --- Associations ----------------------------------------------------------
 
@@ -23,6 +25,11 @@ class WebPage < ActiveRecord::Base
 
 
   # --- Validations -----------------------------------------------------------
+
+
+  # --- Scopes ----------------------------------------------------------------
+
+  scope :available, where(:available => true)
 
 
   # --- Methods ---------------------------------------------------------------
