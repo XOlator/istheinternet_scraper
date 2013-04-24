@@ -36,5 +36,5 @@ def _divider(str='-', t=false, b=false)
 end
 
 def _debug(msg, spaces=0)
-  puts "#{'   ' * spaces}#{msg}" if defined?(DEBUG) && DEBUG
+  puts "#{'   ' * spaces}#{msg}"# if defined?(DEBUG) && DEBUG
 end

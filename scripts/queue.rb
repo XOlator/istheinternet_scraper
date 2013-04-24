@@ -6,8 +6,6 @@ APP_ROOT = File.expand_path('..', File.dirname(__FILE__))
 DEBUG = true
 TIME_START = Time.now
 
-part = ARGV.shift
-
 require 'rubygems'
 require 'bundler'
 
@@ -16,16 +14,52 @@ Bundler.require
 require "#{APP_ROOT}/config.rb"
 
 
+parts, threads = ARGV, []
+parts = PageQueue::STEPS if parts.blank?
 
-_heading("Queue for #{part}")
+_heading("Queue for #{parts.join(',')}")
 
 begin
-  require "#{APP_ROOT}/scripts/#{part}.rb"
+  parts.each do |part|
+    threads << Thread.new {
+      Thread.current[:name] = part
+      begin
+        require "#{APP_ROOT}/scripts/#{part}.rb" if File.exists?("#{APP_ROOT}/scripts/#{part}.rb")
+      rescue => err
+        puts "Thread error: #{err}"
+      end
+    }
+  end
+  
 
 rescue => err
-  puts "ERROR for #{part} Queue: #{err}"
+  puts "ERROR for Queue: #{err}"
 end
 
-_debug('...done!')
+
+# Kill threads upon kill command
+trap("INT") do
+  threads.each {|thread| thread.exit}
+  _debug('...done!')
+  exit
+end
+
+
+sleep(15)
+
+_subheading("Flush Page Queue")
+# TMP
+PageQueue.unscoped.all.each {|p| p.destroy}
+['http://google.com', 'http://gleu.ch/about', 'http://xolator.com', 'http://www.giveinspiration.org'].each do |u|
+  PageQueue.create(:url => u) rescue nil
+end
+
+
+# Keep-alive
+while !threads.blank? do
+  threads.each do |thread|
+    thread.join(0.5)
+  end
+end
 
 exit

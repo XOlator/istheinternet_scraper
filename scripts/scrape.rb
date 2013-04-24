@@ -16,14 +16,6 @@
 
 _subheading('Web Page Scraper')
 
-# TMP
-PageQueue.unscoped.all.each {|p| p.destroy}
-['http://google.com', 'http://gleu.ch/about', 'http://xolator.com'].each do |u|
-  PageQueue.create(:url => u) rescue nil
-end
-
-
-
 # begin
   loop {
     page = PageQueue.scrape.first rescue nil
