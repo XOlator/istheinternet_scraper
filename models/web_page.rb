@@ -41,7 +41,8 @@ class WebPage < ActiveRecord::Base
   end
 
   # --- HTML scrape methods ---
-  def rescrape?; !!self.available? && !self.html_page.exists?; true; end
+  def scraped?; !!self.available? && self.html_page.exists?; end
+  def rescrape?; !!self.available? && !self.html_page.exists?; end
 
   def rescrape!
     begin

@@ -1,3 +1,7 @@
+# Disable paperclip logging
+Paperclip.options[:log] = false
+
+
 # https://github.com/thoughtbot/paperclip/pull/823
 module Paperclip
   class ExtraFileAdapter

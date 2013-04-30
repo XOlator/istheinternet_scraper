@@ -3,7 +3,7 @@ if RUBY_VERSION =~ /1.9/
   Encoding.default_internal = Encoding::UTF_8
 end
 
-source :rubygems
+source 'https://rubygems.org'
 
 gem 'rack',                     '1.5.2'
 gem 'rake',                     '10.0.4'

@@ -36,7 +36,7 @@ class PageQueue < ActiveRecord::Base
 
   def step!(s)
     if PageQueue::STEPS.index(s) == PageQueue::STEPS.last # If completed, then destroy
-      self.destroy
+      self.destroy rescue nil
     else
       self.update_attribute(s, true)
     end
@@ -44,7 +44,7 @@ class PageQueue < ActiveRecord::Base
 
   def retry!
     if self.error_count >= PageQueue::MAX_RETRY_COUNT
-      self.destroy
+      self.destroy rescue nil
     else
       self.error_count += 1
       self.retry_at = Time.now + (PageQueue::RETRY_INTERVAL * self.error_count)

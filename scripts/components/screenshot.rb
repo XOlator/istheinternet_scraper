@@ -20,26 +20,31 @@ require "selenium-webdriver"
 
 _subheading('Screenshot Generation')
 
-Headless.ly do |h|
-  @driver = Selenium::WebDriver.for(:chrome)
+begin
+  @headless = Headless.new
+  @headless.start
 
   begin
+    @driver = Selenium::WebDriver.for(:chrome)
+
     loop {
       page = PageQueue.screenshot.first rescue nil
 
       # Process if something is found
       unless page.blank?
+        _debug("Screenshot #{page.url}")
+
         begin
           page.lock!
 
           fname = "#{APP_ROOT}/tmp/#{page.web_page.id}.jpg"
-          _debug(page.web_page.base_uri)
 
           @driver.navigate.to(page.web_page.base_uri)
           # TODO : Inject script to check if window loaded, timeout after 15 seconds
           sleep(5)
           @driver.save_screenshot(fname)
           page.web_page.screenshot = open(fname)
+          @driver.navigate.to('about:blank')
 
           # If screenshot was saved, then mark as completed
           if page.web_page.save
@@ -48,8 +53,10 @@ Headless.ly do |h|
             page.retry!
           end
 
+          _debug("...screenshot done", 1)
+
         rescue => err
-          _debug("ERROR: #{err}", 1)
+          _debug("Screenshot Error (1): #{err}", 1)
           page.retry!
 
         ensure
@@ -59,17 +66,31 @@ Headless.ly do |h|
 
       # Nothing in queue. Pause for a few seconds
       else
-        _debug('.')
+        # _debug('.')
         sleep(5)
       end
     }
 
   rescue => err
-    _debug("ERROR: #{err}")
+    _debug("Screenshot Error (2): #{err}")
 
   ensure
     @driver.quit rescue nil
   end
+
+  # Kill threads upon kill command
+  trap("INT") do
+    @driver.quit rescue nil
+    @headless.destroy rescue nil
+    exit
+  end
+
+
+rescue => err
+  _debug("Screeshot Error (3): #{err}")
+
+ensure
+  @headless.destroy rescue nil
 end
 
 

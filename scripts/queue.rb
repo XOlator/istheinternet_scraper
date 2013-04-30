@@ -24,13 +24,15 @@ begin
     threads << Thread.new {
       Thread.current[:name] = part
       begin
-        require "#{APP_ROOT}/scripts/#{part}.rb" if File.exists?("#{APP_ROOT}/scripts/#{part}.rb")
+        require "#{APP_ROOT}/scripts/components/#{part}.rb" if File.exists?("#{APP_ROOT}/scripts/components/#{part}.rb")
       rescue => err
-        puts "Thread error: #{err}"
+        puts "Thread error #{part}: #{err}"
+        raise err
       end
     }
+
+    sleep(1) # Give each a second to spin up
   end
-  
 
 rescue => err
   puts "ERROR for Queue: #{err}"
@@ -39,7 +41,7 @@ end
 
 # Kill threads upon kill command
 trap("INT") do
-  threads.each {|thread| thread.exit}
+  threads.each {|thread| thread.exit }
   _debug('...done!')
   exit
 end

@@ -27,11 +27,15 @@ _subheading('Web Page Parser')
       begin
         page.lock!
 
+        _debug("Parsing #{page.url}")
+
         # NO PARSER YET, RUN THROUGH
         page.step!(:parse)
 
+        _debug("...parsing done", 1)
+
       rescue => err
-        _debug("ERROR: #{err}", 1)
+        _debug("Parse error: #{err}", 1)
         page.retry!
       
       ensure
@@ -40,7 +44,7 @@ _subheading('Web Page Parser')
 
     # Nothing in queue. Pause for a few seconds
     else
-      _debug('.')
+      # _debug('.')
       sleep(5)
     end
   }

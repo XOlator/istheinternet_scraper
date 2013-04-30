@@ -25,24 +25,29 @@ _subheading('Web Page Scraper')
       begin
         page.lock!
 
+        _debug("Scraping #{page.url}")
         web_page = get_webpage(page.url)
 
         unless web_page.blank?
           page.web_page = web_page
           
-          if page.save
+          if page.save && web_page.scraped?
             page.step!(:scrape)
+            _debug("...scraping done", 1)
+
           else
             page.retry!
+            _debug("...scraping error. Retrying again shortly.", 1)
           end
 
         # Web page does not exists or is not scrapable -- remove from queue
         else
-          page.destroy
+          page.destroy rescue nil
+          _debug("...unable to scrape.", 1)
         end
 
       rescue => err
-        _debug("ERROR: #{err}", 1)
+        _debug("Scrape Error: #{err}", 1)
         page.retry!
       
       ensure
@@ -51,7 +56,7 @@ _subheading('Web Page Scraper')
 
     # Nothing in queue. Pause for a few seconds
     else
-      _debug('.')
+      # _debug('.')
       sleep(5)
     end
   }
