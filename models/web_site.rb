@@ -39,6 +39,8 @@ class WebSite < ActiveRecord::Base
 
   after_validation :geocode, :if => lambda{ |obj| !obj.server_ip_address.blank? && obj.server_ip_address_changed? }
 
+  validates :url, :presence => true, :format => {:with => /^http/i}
+
 
   # --- Methods ---------------------------------------------------------------
 
@@ -137,10 +139,7 @@ class WebSite < ActiveRecord::Base
   end
 
 
-
-
 protected
-
   
 
 end

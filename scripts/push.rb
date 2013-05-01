@@ -24,13 +24,14 @@ thread = Thread.new {
     url = gets.chomp
 
     begin
-      page = PageQueue.new(:url => url)
+      page = PageQueue.new(:url => url, :priority => 10)
       if page.save
         _debug("Added #{page.url} to queue",1)
       else
         _debug("Unable to add #{page.url} to queue (1)", 1)
       end
     rescue => err
+      puts err.inspect
       _debug("Unable to add #{page.url} to queue (2)", 1)
     end
   }

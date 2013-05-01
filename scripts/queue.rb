@@ -12,32 +12,38 @@ require 'bundler'
 Bundler.require
 
 require "#{APP_ROOT}/config.rb"
-
+Dir.glob("#{APP_ROOT}/scripts/modules/*.rb").each{|r| require r}
 
 parts, threads = ARGV, []
 parts = PageQueue::STEPS if parts.blank?
+
 
 _heading("Queue for #{parts.join(',')}")
 
 begin
   parts.each do |part|
-    threads << Thread.new {
-      Thread.current[:name] = part
-      begin
-        require "#{APP_ROOT}/scripts/components/#{part}.rb" if File.exists?("#{APP_ROOT}/scripts/components/#{part}.rb")
-      rescue => err
-        puts "Thread error #{part}: #{err}"
-        raise err
-      end
-    }
+    q = 1
+    q = 4 if part == :screenshot
 
-    sleep(1) # Give each a second to spin up
+    (1..q).each do |i|
+      threads << Thread.new {
+        Thread.current[:name] = "#{part}_#{i}"
+        Thread.current[:info] = {:name => part, :number => i}
+
+        begin
+          mod = page_module_for_step(part).new(page_module_attrs_for_step(part,i)) rescue nil
+          mod.run if mod
+        rescue => err
+          _debug("Error: #{part}: #{err}")
+        end
+      }
+      sleep(0.25) # Give each a second to spin up
+    end
   end
 
 rescue => err
   puts "ERROR for Queue: #{err}"
 end
-
 
 # Kill threads upon kill command
 trap("INT") do
@@ -47,14 +53,14 @@ trap("INT") do
 end
 
 
-sleep(15)
-
-_subheading("Flush Page Queue")
+# sleep(5)
+# 
+# _subheading("Flush Page Queue")
 # TMP
-PageQueue.unscoped.all.each {|p| p.destroy}
-['http://google.com', 'http://gleu.ch/about', 'http://xolator.com', 'http://www.giveinspiration.org'].each do |u|
-  PageQueue.create(:url => u) rescue nil
-end
+# PageQueue.unscoped.all.each {|p| p.destroy}
+# ['http://google.com', 'http://gleu.ch/about', 'http://xolator.com', 'http://www.giveinspiration.org'].each do |u|
+#   PageQueue.create(:url => u) rescue nil
+# end
 
 
 # Keep-alive

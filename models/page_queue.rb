@@ -15,6 +15,8 @@ class PageQueue < ActiveRecord::Base
 
   # --- Validations -----------------------------------------------------------
 
+  validates :url, :presence => true, :format => {:with => /^http/i}
+
 
   # --- Scopes ----------------------------------------------------------------
 
@@ -30,6 +32,12 @@ class PageQueue < ActiveRecord::Base
 
 
   # --- Methods ---------------------------------------------------------------
+
+  def self.add(u)
+    i = URI.parse(u)
+    i.fragment = nil    
+    PageQueue.create(:url => i.to_s.downcase) rescue nil
+  end
 
   def lock!; self.update_attributes(:locked => true, :locked_at => Time.now); end
   def unlock!; self.update_attributes(:locked => false, :locked_at => nil); end

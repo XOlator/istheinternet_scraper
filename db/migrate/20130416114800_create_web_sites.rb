@@ -8,7 +8,7 @@ class CreateWebSites < ActiveRecord::Migration
       t.string        :host_url
 
       # Robots.txt -- store in db, faster calls
-      t.text          :robots_txt
+      t.text          :robots_txt,                        :limit => 524288
       t.datetime      :robots_txt_updated_at
 
       # DNS record information -- store as text file with key info in db

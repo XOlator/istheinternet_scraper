@@ -6,6 +6,9 @@ class WebPage < ActiveRecord::Base
   extend FriendlyId
   friendly_id :path, :use => :scoped, :scope => :web_site_id
 
+  # Nokogiri
+  require 'nokogiri'
+
   # File storage for HTML page
   include Paperclip::Glue
   has_attached_file :html_page, 
@@ -17,6 +20,7 @@ class WebPage < ActiveRecord::Base
     :path => "#{APP_ROOT}/public/storage/web_pages/:attachment/:id_partition/:style.:extension",
     :styles => {:thumbnail => ["300x300#", :jpg], :pixel => ["1x>", :png]}
 
+
   # --- Associations ----------------------------------------------------------
 
   belongs_to :web_site
@@ -25,6 +29,8 @@ class WebPage < ActiveRecord::Base
 
 
   # --- Validations -----------------------------------------------------------
+
+  validates :url, :presence => true, :format => {:with => /^http/i}
 
 
   # --- Scopes ----------------------------------------------------------------
@@ -52,6 +58,9 @@ class WebPage < ActiveRecord::Base
         io.original_filename = [File.basename(self.filename), "html"].join('.')
         self.html_page = io
 
+        # raise "X" 
+        raise "Invalid content-type" unless io.content_type.match(/text\/html/i)
+
         # Additional information
         self.headers = io.meta.to_hash
         self.base_uri = io.base_uri.to_s # redirect?
@@ -76,6 +85,16 @@ class WebPage < ActiveRecord::Base
     ensure
       self.save
     end
+  end
+
+  def parse!
+    page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
+    self.title = page.css('title').to_s
+    self.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
+    self.save
+
+    follow = page.css('meta[name="robots"]')[0].attributes['content'].to_s rescue 'index,follow'
+    page.css('a[href]').each{|h| PageQueue::add(h.attributes['href']) } unless follow.match(/nofollow/i)  
   end
 
 
