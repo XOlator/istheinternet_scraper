@@ -53,7 +53,7 @@ module IsTheInternet
               begin
                 page.lock!
 
-                fname = "#{APP_ROOT}/tmp/#{page.web_page.id}.jpg"
+                fname = "#{APP_ROOT}/tmp/#{page.web_page.id}.png"
 
                 driver.navigate.to(page.web_page.base_uri)
                 # TODO : Inject script to check if window loaded, timeout after 15 seconds
