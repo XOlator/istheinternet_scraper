@@ -1,6 +1,5 @@
 def page_module_for_step(step)
-  puts step
-  case step
+  case step.to_sym
     when :evaulate
       IsTheInternet::Page::Evaulate
     when :parse

@@ -31,7 +31,7 @@ begin
         Thread.current[:info] = {:name => part, :number => i}
 
         begin
-          mod = page_module_for_step(part).new(page_module_attrs_for_step(part,i)) rescue nil
+          mod = page_module_for_step(part.to_sym).new(page_module_attrs_for_step(part,i)) rescue nil
           mod.run if mod
         rescue => err
           _debug("Error: #{part}: #{err}")
