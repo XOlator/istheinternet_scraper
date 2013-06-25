@@ -32,16 +32,14 @@ module IsTheInternet
               color_palette = page.web_page.color_palette rescue nil
               color_palette ||= page.web_page.build_color_palette
               color_palette.assign_attributes({
-                :dominant_color => [primary.red, primary.green, primary.blue],
-                :dominant_color_red => primary.red,
-                :dominant_color_green => primary.blue,
-                :dominant_color_blue => primary.green,
-                :color_palette => palette.map{|p,c,r| [p.red, p.green, p.blue]}
+                :dominant_color => [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+                :dominant_color_red => rgb(primary.red),
+                :dominant_color_green => rgb(primary.blue),
+                :dominant_color_blue => rgb(primary.green),
+                :color_palette => palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
               })
               
               if color_palette.save
-                color_palette.reload
-                puts color_palette.color_palette.inspect rescue "OMG ERR"
                 page.step!(:process)
               else
                 page.retry!
@@ -64,6 +62,9 @@ module IsTheInternet
         end
       end
 
+      def rgb(i=0)
+        (@q18 || i > 255 ? ((255*i)/65535) : i).round
+      end
     end
   end
 end
