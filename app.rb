@@ -104,8 +104,8 @@ result = Proc.new{|parts,opts|
 begin
   if options[:daemon]
     puts "Forking process..."
-    p = fork { result.call(parts, options) }
-    sleep(0.25)
+    p = fork { sleep(2); result.call(parts, options) }
+    sleep(2)
     s = Process.getpgid(p) rescue nil
     if s
       Process.detach(p)
