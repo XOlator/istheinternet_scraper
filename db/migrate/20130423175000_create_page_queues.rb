@@ -11,7 +11,7 @@ class CreatePageQueues < ActiveRecord::Migration
       t.boolean       :scrape,          :default => false
       t.boolean       :parse,           :default => false
       t.boolean       :screenshot,      :default => false
-      t.boolean       :evaulate,        :default => false
+      t.boolean       :process,         :default => false
 
       # Locking
       t.boolean       :locked,          :default => false

@@ -2,7 +2,7 @@ class PageQueue < ActiveRecord::Base
 
   self.per_page = 50
 
-  STEPS = [:scrape, :parse, :screenshot, :evaulate]
+  STEPS = [:scrape, :parse, :screenshot, :process]
 
   RETRY_INTERVAL = 15.minutes
   MAX_RETRY_COUNT = 10
@@ -43,8 +43,8 @@ class PageQueue < ActiveRecord::Base
   def unlock!; self.update_attributes(:locked => false, :locked_at => nil); end
 
   def step!(s)
-    if PageQueue::STEPS.index(s) == PageQueue::STEPS.last # If completed, then destroy
-      self.destroy rescue nil
+    if s == PageQueue::STEPS.last # If completed, then destroy
+      self.destroy
     else
       self.update_attribute(s, true)
     end

@@ -1,7 +1,7 @@
 def page_module_for_step(step)
   case step.to_sym
-    when :evaulate
-      IsTheInternet::Page::Evaulate
+    when :process
+      IsTheInternet::Page::Process
     when :parse
       IsTheInternet::Page::Parse
     when :screenshot
@@ -16,7 +16,7 @@ end
 
 def page_module_attrs_for_step(step,i)
   case step
-    # when :evaluate
+    # when :process
     #   {}
     # when :parse
     #   {}

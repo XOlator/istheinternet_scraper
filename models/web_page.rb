@@ -24,6 +24,7 @@ class WebPage < ActiveRecord::Base
   # --- Associations ----------------------------------------------------------
 
   belongs_to :web_site
+  has_one :color_palette
 
   serialize :headers, Hash
 

@@ -14,6 +14,11 @@ The IsTheInter.net web scraper is a core compontent in collecting information ab
 
 _Information soon_
 
+1. Scrape
+2. Parse
+3. Screenshot
+4. Process
+
 
 ### License
 
