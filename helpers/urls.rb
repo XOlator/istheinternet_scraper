@@ -8,7 +8,7 @@ end
 
 # Get URL path
 def get_url_host(u)
-  URI.parse(u).host.gsub(/^www\./, '').downcase
+  URI.parse(u).host.gsub(/\Awww\./, '').downcase
 end
 
 # Scrape website

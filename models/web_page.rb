@@ -31,7 +31,7 @@ class WebPage < ActiveRecord::Base
 
   # --- Validations -----------------------------------------------------------
 
-  validates :url, :presence => true, :format => {:with => /^http/i}
+  validates :url, :presence => true, :format => {:with => /\Ahttp/i}
 
 
   # --- Scopes ----------------------------------------------------------------

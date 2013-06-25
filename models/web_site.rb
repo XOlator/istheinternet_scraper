@@ -39,7 +39,7 @@ class WebSite < ActiveRecord::Base
 
   after_validation :geocode, :if => lambda{ |obj| !obj.server_ip_address.blank? && obj.server_ip_address_changed? }
 
-  validates :url, :presence => true, :format => {:with => /^http/i}
+  validates :url, :presence => true, :format => {:with => /\Ahttp/i}
 
 
   # --- Methods ---------------------------------------------------------------
@@ -83,15 +83,15 @@ class WebSite < ActiveRecord::Base
     path << "?#{URI.escape(uri.query)}" unless uri.query.blank?
 
     self.robots_txt.each_line do |ln|
-      next if ln.blank? || ln.match(/^\#/)
+      next if ln.blank? || ln.match(/\A\#/)
 
-      ua_rules = Regexp.last_match[1].match(agents) if ln.match(/^\s*User-agent:\s*(.*)/i)
+      ua_rules = Regexp.last_match[1].match(agents) if ln.match(/\A\s*User-agent:\s*(.*)/i)
       next unless ua_rules
 
-      if ln.match(/^\s*Allow:\s*(.*)/i)
+      if ln.match(/\A\s*Allow:\s*(.*)/i)
         return true if Regexp.last_match[1].blank?
         allow_rules << Regexp.new("^#{Regexp.escape(Regexp.last_match[1]).gsub(/\\\*/, '.*')}$", Regexp::IGNORECASE)
-      elsif ln.match(/^\s*Disallow:\s*(.*)/i)
+      elsif ln.match(/\A\s*Disallow:\s*(.*)/i)
         return true if Regexp.last_match[1].blank?
         disallow_rules << Regexp.new("^#{Regexp.escape(Regexp.last_match[1]).gsub(/\\\*/, '.*')}$", Regexp::IGNORECASE)
       end

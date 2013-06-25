@@ -15,7 +15,7 @@ class PageQueue < ActiveRecord::Base
 
   # --- Validations -----------------------------------------------------------
 
-  validates :url, :presence => true, :format => {:with => /^http/i}
+  validates :url, :presence => true, :format => {:with => /\Ahttp/i}
 
 
   # --- Scopes ----------------------------------------------------------------
@@ -35,7 +35,7 @@ class PageQueue < ActiveRecord::Base
 
   def self.add(u)
     i = URI.parse(u)
-    i.fragment = nil    
+    i.fragment = nil
     PageQueue.create(:url => i.to_s.downcase) rescue nil
   end
 
