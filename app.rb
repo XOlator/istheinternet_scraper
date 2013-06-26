@@ -8,7 +8,7 @@
 # License information: LICENSE.md
 
 
-APP_ROOT = File.dirname(__FILE__)
+APP_ROOT = File.expand_path(File.dirname(__FILE__))
 
 Encoding.default_external = "UTF-8"
 Encoding.default_internal = "UTF-8"
@@ -16,6 +16,7 @@ Encoding.default_internal = "UTF-8"
 require "rubygems"
 require "bundler"
 Bundler.setup
+
 
 require "#{APP_ROOT}/config.rb"
 require 'optparse'
@@ -36,6 +37,8 @@ end.parse!
 
 # DEBUG ||= false
 PageQueue::STEPS.each{|k,v| parts[k] = 1} if parts.blank?
+
+puts parts.inspect
 
 
 # --- QUEUE ---
@@ -104,8 +107,8 @@ result = Proc.new{|parts,opts|
 begin
   if options[:daemon]
     puts "Forking process..."
-    p = fork { result.call(parts, options) }
-    sleep(0.25)
+    p = fork { sleep(2); result.call(parts, options) }
+    sleep(2)
     s = Process.getpgid(p) rescue nil
     if s
       Process.detach(p)
