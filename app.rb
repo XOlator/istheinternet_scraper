@@ -1,6 +1,5 @@
 # encoding: UTF-8
 
-# Wayback WiFi
 # A X&O Lab Creative Project
 # http://www.x-and-o.co/lab
 #
@@ -8,14 +7,15 @@
 # License information: LICENSE.md
 
 
-APP_ROOT = File.expand_path(File.dirname(__FILE__))
-
-Encoding.default_external = "UTF-8"
-Encoding.default_internal = "UTF-8"
+# START IT UP...
+APP_MODE = 'scraper'
+APP_ROOT = File.expand_path('.', File.dirname(__FILE__))
+DEBUG = true
+TIME_START = Time.now
 
 require "rubygems"
 require "bundler"
-Bundler.setup
+Bundler.require
 
 
 require "#{APP_ROOT}/config.rb"
