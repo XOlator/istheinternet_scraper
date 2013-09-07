@@ -1,4 +1,3 @@
-require "headless"
 require "selenium-webdriver"
 
 module IsTheInternet
