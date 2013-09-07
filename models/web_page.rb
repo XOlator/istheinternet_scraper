@@ -18,7 +18,8 @@ class WebPage < ActiveRecord::Base
     # :storage => :s3, :s3_credentials => "#{APP_ROOT}/s3.yml", 
   has_attached_file :screenshot, 
     :path => "#{APP_ROOT}/public/storage/web_pages/:attachment/:id_partition/:style.:extension",
-    :styles => {:thumbnail => ["300x300#", :jpg], :pixel => ["1x>", :png]}
+    :styles => {:thumbnail => "", :pixel => ["1x>", :png]},
+    :convert_options => {:thumbnail => "-gravity north -thumbnail 300x300^ -extent 300x300"}
 
 
   # --- Associations ----------------------------------------------------------
