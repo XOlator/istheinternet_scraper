@@ -34,7 +34,7 @@ class PageQueue < ActiveRecord::Base
   # --- Methods ---------------------------------------------------------------
 
   def self.add(u)
-    i = URI.parse(u)
+    i = Addressable::URI.parse(u)
     i.fragment = nil
     PageQueue.create(:url => i.to_s.downcase) rescue nil
   end

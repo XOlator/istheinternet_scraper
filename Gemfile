@@ -15,6 +15,7 @@ gem 'json',                     '1.8.0'
 gem 'oj',                       '2.1.4'
 gem 'paperclip',                '3.5.1'
 gem 'friendly_id',              '4.0.10.1'
+gem 'addressable',              '2.3.5'
 # gem 'pony',                     '1.4'
 
 # Screenshot processing

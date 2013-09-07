@@ -1,6 +1,6 @@
 # Get base URL
 def get_url_path(u)
-  i = URI.parse(u)
+  i = Addressable::URI.parse(u)
   i.host, i.scheme = nil, nil
   p = i.to_s.downcase
   return (p.blank? ? "/" : p)
@@ -8,7 +8,7 @@ end
 
 # Get URL path
 def get_url_host(u)
-  URI.parse(u).host.gsub(/\Awww\./, '').downcase
+  Addressable::URI.parse(u).host.gsub(/\Awww\./, '').downcase
 end
 
 # Scrape website

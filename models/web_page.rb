@@ -44,7 +44,7 @@ class WebPage < ActiveRecord::Base
 
 
   def filename
-    f = File.basename(URI.parse(self.url).path)
+    f = File.basename(Addressable::URI.parse(self.url).path)
     (f.blank? ? 'index' : f)
   end
 

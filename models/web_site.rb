@@ -78,7 +78,7 @@ class WebSite < ActiveRecord::Base
   def robots_txt_allow?(u, ua=CRAWLER_USER_AGENT)
     return true if self.robots_txt.blank? # Blank robots means there is not to disallow us from.
 
-    uri, agents, allow_rules, disallow_rules, ua_rules = URI.parse(u), Regexp.new("(\\*)|(#{Regexp.escape(ua)})", Regexp::IGNORECASE), [], [], false
+    uri, agents, allow_rules, disallow_rules, ua_rules = Addressable::URI.parse(u), Regexp.new("(\\*)|(#{Regexp.escape(ua)})", Regexp::IGNORECASE), [], [], false
     path = uri.path
     path << "?#{URI.escape(uri.query)}" unless uri.query.blank?
 
