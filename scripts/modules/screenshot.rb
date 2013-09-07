@@ -70,7 +70,6 @@ module IsTheInternet
                 stop_driver
                 _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (1): #{err}", 1)
                 page.retry!
-                raise "XXX"
               
               ensure
                 File.unlink(fname) rescue nil

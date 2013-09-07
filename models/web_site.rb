@@ -1,6 +1,6 @@
 class WebSite < ActiveRecord::Base
 
-  self.per_page = 50
+  # self.per_page = 50
 
   # Nicer fetching by url name
   extend FriendlyId

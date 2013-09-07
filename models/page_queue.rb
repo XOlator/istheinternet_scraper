@@ -1,6 +1,6 @@
 class PageQueue < ActiveRecord::Base
 
-  self.per_page = 50
+  # self.per_page = 50
 
   STEPS = [:scrape, :parse, :screenshot, :process]
 
