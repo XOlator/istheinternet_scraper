@@ -20,7 +20,6 @@ gem 'friendly_id',              '4.0.9'
 # gem 'pony',                     '1.4'
 
 # Screenshot processing
-gem 'headless',                 '1.0.1'
 gem 'selenium-webdriver',       '2.32.1'
 
 # API Intgrations
