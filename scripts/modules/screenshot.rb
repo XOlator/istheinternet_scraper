@@ -10,14 +10,9 @@ module IsTheInternet
         @running = true
       end
 
-      def headless
-        opts = {}
-        opts[:display] = @attrs[:display] unless @attrs[:display].blank?
-        @headless ||= Headless.new(opts)
-      end
-
-      def driver(b=:chrome)
-        @driver ||= Selenium::WebDriver.for(b)
+      def driver(b=:remote,o=nil)
+        o ||= {:url => 'http://localhost:9134'}
+        @driver ||= Selenium::WebDriver.for(b,o)
       end
 
       # Stop the driver and remove the association
@@ -41,10 +36,9 @@ module IsTheInternet
         @running = true
 
         begin
-          headless.start
-
           while @running
             page = PageQueue.screenshot.first rescue nil
+            
 
             # Process if something is found
             unless page.blank?
@@ -56,13 +50,11 @@ module IsTheInternet
                 fname = "#{APP_ROOT}/tmp/#{page.web_page.id}.png"
 
                 driver.navigate.to(page.web_page.base_uri)
-                # TODO : Inject script to check if window loaded, timeout after 15 seconds
-                sleep(5)
-
                 raise "Driver has crashed" if crashed?
 
                 driver.save_screenshot(fname)
                 page.web_page.screenshot = open(fname)
+                puts page.web_page.id
                 driver.navigate.to('about:blank')
 
                 # If screenshot was saved, then mark as completed
@@ -78,6 +70,7 @@ module IsTheInternet
                 stop_driver
                 _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (1): #{err}", 1)
                 page.retry!
+                raise "XXX"
               
               ensure
                 File.unlink(fname) rescue nil
@@ -87,7 +80,7 @@ module IsTheInternet
             # Nothing in queue. Pause for a few seconds
             else
               # _debug('.')
-              sleep(5)
+              sleep(1)
             end
           end
 
@@ -96,7 +89,6 @@ module IsTheInternet
         
         ensure
           driver.quit rescue nil
-          headless.stop
         end
       end
 
