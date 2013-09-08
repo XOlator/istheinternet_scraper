@@ -53,8 +53,6 @@ module IsTheInternet
 
                 driver.save_screenshot(fname)
                 page.web_page.screenshot = open(fname)
-                puts page.web_page.id
-                driver.navigate.to('about:blank')
 
                 # If screenshot was saved, then mark as completed
                 if page.web_page.save
@@ -66,11 +64,11 @@ module IsTheInternet
                 _debug("...screenshot done", 1)
 
               rescue => err
-                stop_driver
                 _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (1): #{err}", 1)
                 page.retry!
               
               ensure
+                stop_driver
                 File.unlink(fname) rescue nil
                 page.unlock! rescue nil
               end
