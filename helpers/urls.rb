@@ -1,8 +1,9 @@
 # Get base URL
 def get_url_path(u)
   i = Addressable::URI.parse(u)
-  i.host, i.scheme = nil, nil
-  p = i.to_s.downcase
+  p = (i.path || '').downcase rescue ''
+  p << "?#{i.query}" unless i.query.blank?
+  p << "##{i.fragment}" unless i.fragment.blank?
   return (p.blank? ? "/" : p)
 end
 
