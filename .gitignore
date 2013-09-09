@@ -9,3 +9,4 @@ Gemfile.lock
 chromedriver.log
 tmp/
 scraper.pid
+twitter.yml
