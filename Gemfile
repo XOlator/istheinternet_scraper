@@ -19,13 +19,14 @@ gem 'addressable',              '2.3.5'
 # gem 'pony',                     '1.4'
 
 # Screenshot processing
-gem 'selenium-webdriver',       '2.35.1'
+gem 'selenium-webdriver',       '2.35.1',    :require => false
 
 # API Intgrations
 gem 'geocoder',                 '1.1.8'
 gem 'aws-sdk',                  '1.17.0'
 gem 'dnsruby',                  '1.54'
 gem 'whois',                    '3.2.1'
+gem 'twitter',                  '4.8.1',    :require => false
 
 # Monitoring
 # gem 'errplane',                 '0.6.7'

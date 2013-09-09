@@ -21,6 +21,9 @@ class ColorPalette < ActiveRecord::Base
 
   # --- Methods ---------------------------------------------------------------
 
+  def self.hex_color
+    '' << average(:dominant_color_red).round.to_s(16) << average(:dominant_color_green).round.to_s(16) << average(:dominant_color_blue).round.to_s(16)
+  end
 
 
 protected
