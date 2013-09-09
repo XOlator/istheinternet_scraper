@@ -65,5 +65,5 @@ end
 
 ct, hex_color, color_name = ColorPalette.count, ColorPalette.hex_color, ''
 str = "After #{ct} results, the color of the Internet is ##{hex_color}."# (#{color_name})."
-client.update_profile_colors(:profile_background_color => hex_color, :profile_link_color => hex_color)
+client.update_profile_colors(:profile_background_color => hex_color)
 client.update(str)
