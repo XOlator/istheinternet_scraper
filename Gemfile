@@ -17,6 +17,7 @@ gem 'paperclip',                '3.5.1'
 gem 'friendly_id',              '4.0.10.1'
 gem 'addressable',              '2.3.5'
 # gem 'pony',                     '1.4'
+gem 'color',                    '1.4.2'
 
 # Screenshot processing
 gem 'selenium-webdriver',       '2.35.1',    :require => false
