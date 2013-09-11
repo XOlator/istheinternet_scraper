@@ -80,3 +80,66 @@ namespace :db do
     puts "Current version: #{ActiveRecord::Migrator.current_version}"
   end
 end
+
+
+namespace :paperclip do
+  task :migrate do
+    require 'aws/s3'
+    
+    # Load credentials
+    s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys
+    bn = s3_options[:bucket]
+    
+    # Establish S3 connection
+    s3_options.delete(:bucket_name)
+    s3 = AWS::S3.new(s3_options)
+    b = s3.buckets[bn]
+    
+    ws_w, wp_s, wp_p = [:original], [:original], [:original]
+    ws_ct, wp_ct = WebSite.count, WebPage.count
+    WebPage.first.screenshot.styles.each{|s| wp_s.push(s[0])}
+    
+    WebPage.all.each_with_index do |a, n|
+      wp_s.each do |s|
+        p = a.screenshot.path(s)
+        u = a.screenshot.url(s).gsub(/^\//, '')
+
+        begin
+          obj = b.objects.create(u, '')
+          raise "#{p}" unless obj.write(:file => p, :access => :public_read)
+          puts "Saved #{p} to S3 (#{n}/#{wp_ct})"
+        rescue => e
+          puts "Error 1: #{e}"
+        end
+      end unless a.screenshot_file_size.blank?
+
+      wp_p.each do |s|
+        p = a.html_page.path(s)
+        u = a.html_page.url(s).gsub(/^\//, '')
+
+        begin
+          obj = b.objects.create(u, '')
+          raise "#{p}" unless obj.write(:file => p, :access => :public_read)
+          puts "Saved #{p} to S3 (#{n}/#{wp_ct})"
+        rescue => e
+          puts "Error 2: #{e}"
+        end
+      end unless a.html_page_file_size.blank?
+    end
+
+    WebSite.all.each_with_index do |a, n|
+      ws_w.each do |s|
+        p = a.whois_record.path(s)
+        u = a.whois_record.url(s).gsub(/^\//, '')
+        
+        begin
+          obj = b.objects.create(u, '')
+          raise "#{p}" unless obj.write(:file => p, :access => :public_read)
+          puts "Saved #{p} to S3 (#{n}/#{ws_ct})"
+        rescue => e
+          puts "Error 3: #{e}"
+        end
+      end unless a.whois_record_file_size.blank?
+    end
+  end
+end

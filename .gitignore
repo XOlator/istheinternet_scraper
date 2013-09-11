@@ -10,3 +10,4 @@ chromedriver.log
 tmp/
 scraper.pid
 twitter.yml
+s3.yml
