@@ -100,27 +100,27 @@ namespace :paperclip do
     WebPage.first.screenshot.styles.each{|s| wp_s.push(s[0])}
     
     WebPage.all.each_with_index do |a, n|
-      wp_s.each do |s|
-        p = a.screenshot.path(s)
-        u = a.screenshot.url(s).gsub(/^\//, '')
-
-        begin
-          obj = b.objects.create(u, '')
-          raise "#{p}" unless obj.write(:file => p, :access => :public_read)
-          puts "Saved #{p} to S3 (#{n}/#{wp_ct})"
-        rescue => e
-          puts "Error 1: #{e}"
-        end
-      end unless a.screenshot_file_size.blank?
+      # wp_s.each do |s|
+      #   p = a.screenshot.path(s)
+      #   u = a.screenshot.url(s).gsub(/^\//, '').gsub(/(\?.*)$/, '')
+      # 
+      #   begin
+      #     obj = b.objects.create(u, '')
+      #     raise "#{p}" unless obj.write(:file => p, :access => :public_read)
+      #     puts "Saved #{p} to S3 (#{n}/#{wp_ct})"
+      #   rescue => e
+      #     puts "Error 1: #{e}"
+      #   end
+      # end unless a.screenshot_file_size.blank?
 
       wp_p.each do |s|
         p = a.html_page.path(s)
-        u = a.html_page.url(s).gsub(/^\//, '')
+        u = a.html_page.url(s).gsub(/^\//, '').gsub(/(\?.*)$/, '')
 
         begin
           obj = b.objects.create(u, '')
           raise "#{p}" unless obj.write(:file => p, :access => :public_read)
-          puts "Saved #{p} to S3 (#{n}/#{wp_ct})"
+          puts "Saved wphtml #{p} to S3 (#{n}/#{wp_ct})"
         rescue => e
           puts "Error 2: #{e}"
         end
@@ -135,7 +135,7 @@ namespace :paperclip do
         begin
           obj = b.objects.create(u, '')
           raise "#{p}" unless obj.write(:file => p, :access => :public_read)
-          puts "Saved #{p} to S3 (#{n}/#{ws_ct})"
+          puts "Saved ws #{p} to S3 (#{n}/#{ws_ct})"
         rescue => e
           puts "Error 3: #{e}"
         end
