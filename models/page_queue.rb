@@ -28,7 +28,7 @@ class PageQueue < ActiveRecord::Base
   end
 
   # Work priority first, by first added at. Skip if pending for a retry or locked
-  default_scope lambda { where(:locked => false).where("retry_at IS NULL OR retry_at < ?", Time.now).order('priority DESC, created_at ASC') }
+  default_scope lambda { where(:locked => false).where("retry_at IS NULL OR retry_at < ?", Time.now).order('id ASC')#.order('priority DESC, created_at ASC') }
 
 
   # --- Methods ---------------------------------------------------------------
