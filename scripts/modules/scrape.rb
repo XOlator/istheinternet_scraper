@@ -28,13 +28,18 @@ module IsTheInternet
               unless web_page.blank?
                 page.web_page = web_page
           
-                if page.save && web_page.scraped?
-                  page.step!(:scrape)
-                  _debug("...scraping done", 1)
-
+                if page.save
+                  if web_page.scraped?
+                    page.step!(:scrape)
+                    _debug("...scraping done", 1)
+                  else
+                    page.retry!
+                    _debug("...scraping error. Retrying again shortly (1).", 1)
+                  end
                 else
+                  puts page.errors.inspect
                   page.retry!
-                  _debug("...scraping error. Retrying again shortly.", 1)
+                  _debug("...scraping error. Retrying again shortly (2).", 1)
                 end
 
               # Web page does not exists or is not scrapable -- remove from queue
