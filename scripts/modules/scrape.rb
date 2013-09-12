@@ -29,7 +29,7 @@ module IsTheInternet
                 page.web_page = web_page
           
                 if page.save
-                  if web_page.scraped?
+                  if page.web_page.scraped?
                     page.step!(:scrape)
                     _debug("...scraping done", 1)
                   else

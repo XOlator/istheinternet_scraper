@@ -69,9 +69,11 @@ class WebPage < ActiveRecord::Base
         self.last_modified_at = io.last_modified
         self.charset = io.charset
         self.page_status = io.status[0]
+        self.available = true
       end
 
     rescue OpenURI::HTTPError => err
+      puts "Fetch Page Error (OpenURI): #{err}"
       self.html_page = nil
       self.html_page_updated_at = Time.now
       self.available = false
