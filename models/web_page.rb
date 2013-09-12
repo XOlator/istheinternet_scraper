@@ -16,9 +16,10 @@ class WebPage < ActiveRecord::Base
     :styles =>  {:original => {:format => :html, :processors => [:save_html]}}
   has_attached_file :screenshot, 
     :path => "system/web_pages/:attachment/:id_partition/:style.:extension",
-    :styles => {:thumbnail => "", :pixel => ["1x>", :png]},
+    :styles => {:thumbnail => "", :pixel => ["1x1#", :png]},
     :convert_options => {:thumbnail => "-gravity north -thumbnail 300x300^ -extent 300x300"}
 
+    # TODO : REPROCESS UP TO id <= 27000
 
   # --- Associations ----------------------------------------------------------
 

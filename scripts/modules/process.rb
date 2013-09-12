@@ -52,7 +52,7 @@ module IsTheInternet
               _debug("...parsing done", 1)
 
             rescue => err
-              _debug("Parse error: #{err}", 1)
+              _debug("Process error: #{err}", 1)
               page.retry!
               
             ensure
