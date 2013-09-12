@@ -49,7 +49,7 @@ module IsTheInternet
                 page.retry!
               end
 
-              _debug("...parsing done", 1)
+              _debug("...processing done", 1)
 
             rescue => err
               _debug("Process error: #{err}", 1)
