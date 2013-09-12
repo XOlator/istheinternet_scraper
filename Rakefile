@@ -94,7 +94,7 @@ namespace :paperclip do
     s3_options.delete(:bucket_name)
     s3 = AWS::S3.new(s3_options)
     b = s3.buckets[bn]
-    
+
     ws_w, wp_s, wp_p = [:original], [:original], [:original]
     ws_ct, wp_ct = WebSite.count, WebPage.count
     WebPage.first.screenshot.styles.each{|s| wp_s.push(s[0])}

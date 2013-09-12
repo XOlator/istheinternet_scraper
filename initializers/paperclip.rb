@@ -1,16 +1,18 @@
 # Disable paperclip logging
 Paperclip.options[:log] = false
 
-# s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys rescue nil
-# 
-# if s3_options.present?
-#   Paperclip::Attachment.default_options[:storage] = :s3
-#   Paperclip::Attachment.default_options[:bucket] = s3_options[:bucket],
-#   Paperclip::Attachment.default_options[:s3_credentials] = {
-#     access_key_id: s3_options[:access_key_id],
-#     secret_access_key: s3_options[:secret_access_key]
-#   }
-# end
+s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys rescue nil
+
+if s3_options.present?
+  Paperclip::Attachment.default_options.merge!({
+    storage:  :s3,
+    bucket:   s3_options[:bucket],
+    s3_credentials: {
+      access_key_id: s3_options[:access_key_id],
+      secret_access_key: s3_options[:secret_access_key]
+    }
+  })
+end
 
 
 # https://github.com/thoughtbot/paperclip/pull/823

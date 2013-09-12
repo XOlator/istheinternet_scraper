@@ -12,12 +12,10 @@ class WebPage < ActiveRecord::Base
   # File storage for HTML page
   include Paperclip::Glue
   has_attached_file :html_page, 
-    :path => "#{APP_ROOT}/public/storage/web_pages/:attachment/:id_partition/:filename",
+    :path => "system/web_pages/:attachment/:id_partition/:filename",
     :styles =>  {:original => {:format => :html, :processors => [:save_html]}}
-    # :default_url => 'https://popblock-assets.s3.amazonaws.com/user/missing/:attachment_:style.:extension',
-    # :storage => :s3, :s3_credentials => "#{APP_ROOT}/s3.yml", 
   has_attached_file :screenshot, 
-    :path => "#{APP_ROOT}/public/storage/web_pages/:attachment/:id_partition/:style.:extension",
+    :path => "system/web_pages/:attachment/:id_partition/:style.:extension",
     :styles => {:thumbnail => "", :pixel => ["1x>", :png]},
     :convert_options => {:thumbnail => "-gravity north -thumbnail 300x300^ -extent 300x300"}
 

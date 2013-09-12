@@ -23,10 +23,8 @@ class WebSite < ActiveRecord::Base
   # File storage for DNS record
   include Paperclip::Glue
   has_attached_file :whois_record, 
-    :path => "#{APP_ROOT}/public/storage/web_sites/:attachment/:id_partition/:filename",
+    :path => "system/web_sites/:attachment/:id_partition/:filename",
     :style => {:original => [:txt]}
-    # :default_url => 'https://popblock-assets.s3.amazonaws.com/user/missing/:attachment_:style.:extension',
-    # :storage => :s3, :s3_credentials => "#{APP_ROOT}/s3.yml", 
 
 
   # --- Associations ----------------------------------------------------------
