@@ -88,7 +88,8 @@ class WebPage < ActiveRecord::Base
   end
 
   def parse!
-    page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
+    # page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
+    page = Nokogiri::HTML(open(self.html_page.url, :read_timeout => 15, "User-Agent" => CRAWLER_USER_AGENT))
     self.title = page.css('title').to_s
     self.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
     self.save

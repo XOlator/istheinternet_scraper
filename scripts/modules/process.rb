@@ -24,8 +24,10 @@ module IsTheInternet
 
               _debug("Processing #{page.url}")
 
-              # img = Magick::Image.read(page.web_page.screenshot.path).first
-              img = Magick::Image.read(page.web_page.screenshot.path(:pixel)).first
+              # img = Magick::Image.read(page.web_page.screenshot.path(:pixel)).first
+              img = Magick::ImageList.new
+              img.from_blob(open(page.web_page.screenshot.url(:pixel), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+
               img.delete_profile('*')
               primary = img.pixel_color(0,0)
               # palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
