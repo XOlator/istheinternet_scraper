@@ -58,17 +58,17 @@ class WebSite < ActiveRecord::Base
         self.save
       end
     rescue Timeout::Error => err
-      puts "Fetch Robots.txt Error (Timeout): #{err}"
+      _debug("Fetch Robots.txt Error (Timeout): #{err}", 1, self)
     rescue OpenURI::HTTPError => err
       if (err || '').to_s.match(/404/)
         self.robots_txt = ''
         self.robots_txt_updated_at = Time.now
         self.save
       else
-        puts "Fetch Robots.txt Error (HTTPError): #{err}"
+        _debug("Fetch Robots.txt Error (HTTPError): #{err}", 1, self)
       end
     rescue => err
-      puts "Fetch Robots.txt Error (Error): #{err}"
+      _debug("Fetch Robots.txt Error (Error): #{err}", 1, self)
     end
   end
 
@@ -130,9 +130,9 @@ class WebSite < ActiveRecord::Base
         self.save
       end
     rescue Timeout::Error => err
-      puts "Fetch DNS Record Error (Timeout): #{err}"
+      _debug("Fetch DNS Record Error (Timeout): #{err}", 1, self)
     rescue => err
-      puts "Fetch DNS Record Error (Error): #{err}"
+      _debug("Fetch DNS Record Error (Error): #{err}", 1, self)
     end
   end
 

@@ -71,17 +71,17 @@ class WebPage < ActiveRecord::Base
       end
 
     rescue OpenURI::HTTPError => err
-      puts "Fetch Page Error (OpenURI): #{err}"
+      _debug("Fetch Page Error (OpenURI): #{err}", 1, self)
       self.html_page = nil
       self.html_page_updated_at = Time.now
       self.page_status = err.io.status[0]
       self.available = false
 
     rescue Timeout::Error => err
-      puts "Fetch Page Error (Timeout): #{err}"
+      _debug("Fetch Page Error (Timeout): #{err}", 1, self)
 
     rescue => err
-      puts "Fetch Page Error (Error): #{err}"
+      _debug("Fetch Page Error (Error): #{err}", 1, self)
 
     # Do save the record
     ensure
@@ -91,6 +91,8 @@ class WebPage < ActiveRecord::Base
 
   def parse!
     # page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
+    _debug(self.html_page.url(:original), 2, self)
+
     page = Nokogiri::HTML(open(self.html_page.url(:original), :read_timeout => 15, "User-Agent" => CRAWLER_USER_AGENT).read)
     self.title = page.css('title').to_s
     self.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }

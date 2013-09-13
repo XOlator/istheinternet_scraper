@@ -35,6 +35,9 @@ def _divider(str='-', t=false, b=false)
   puts "\n\n" if b
 end
 
-def _debug(msg, spaces=0)
-  puts "#{'   ' * spaces}#{msg}"# if defined?(DEBUG) && DEBUG
+def _debug(msg, spaces=0, obj=[])
+  # return unless defined?(DEBUG) && DEBUG
+  str = [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
+  str << msg 
+  puts "[#{Time.now.to_s(:db)}] #{'   ' * spaces}#{str.join(' ')}"
 end

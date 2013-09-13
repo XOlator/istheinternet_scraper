@@ -41,7 +41,7 @@ module IsTheInternet
 
             # Process if something is found
             unless page.blank?
-              _debug("Screenshot #{page.url}")
+              _debug("Screenshot #{page.url}", 0, page)
 
               begin
                 page.lock!
@@ -61,10 +61,10 @@ module IsTheInternet
                   page.retry!
                 end
 
-                _debug("...screenshot done", 1)
+                _debug("...screenshot done", 1, [page, page.web_page])
 
               rescue => err
-                _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (1): #{err}", 1)
+                _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (1): #{err}", 1, [page, page.web_page])
                 page.retry!
               
               ensure
@@ -81,7 +81,7 @@ module IsTheInternet
           end
 
         rescue => err
-          _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (2): #{err}")
+          _debug("#{Thread.current[:name] if Thread.current} Screenshot Error (2): #{err}", 0, [page])
         
         ensure
           driver.quit rescue nil

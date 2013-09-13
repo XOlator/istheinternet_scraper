@@ -30,7 +30,7 @@ def get_webpage(u)
   p ||= WebPage.create(:path => q, :web_site_id => s.id, :url => u)
 
   # Scrape and store web page
-  p.rescrape! if p.rescrape?
+  p.rescrape!# if p.rescrape?
 
   p
 end

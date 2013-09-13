@@ -22,7 +22,7 @@ module IsTheInternet
             begin
               page.lock!
 
-              _debug("Processing #{page.url}")
+              _debug("Processing #{page.url}", 0, [page, page.web_page])
 
               # img = Magick::Image.read(page.web_page.screenshot.path(:pixel)).first
               img = Magick::ImageList.new
@@ -49,10 +49,10 @@ module IsTheInternet
                 page.retry!
               end
 
-              _debug("...processing done", 1)
+              _debug("...processing done", 1, [page, page.web_page])
 
             rescue => err
-              _debug("Process error: #{err}", 1)
+              _debug("Process error: #{err}", 1, [page])
               page.retry!
               
             ensure

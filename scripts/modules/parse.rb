@@ -22,7 +22,7 @@ module IsTheInternet
             begin
               page.lock!
 
-              _debug("Parsing #{page.url}")
+              _debug("Parsing #{page.url}", 0, [page, page.web_page])
 
               if page.web_page.parse!
                 page.step!(:parse)
@@ -30,10 +30,10 @@ module IsTheInternet
                 page.retry!
               end
 
-              _debug("...parsing done", 1)
+              _debug("...parsing done", 1, [page, page.web_page])
 
             rescue => err
-              _debug("Parse error: #{err}", 1)
+              _debug("Parse error: #{err}", 1, [page, page.web_page])
               page.retry!
       
             ensure
