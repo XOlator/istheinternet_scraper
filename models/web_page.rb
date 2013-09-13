@@ -75,7 +75,7 @@ class WebPage < ActiveRecord::Base
       self.html_page = nil
       self.html_page_updated_at = Time.now
       self.page_status = err.io.status[0]
-      self.availble = false
+      self.available = false
 
     rescue Timeout::Error => err
       puts "Fetch Page Error (Timeout): #{err}"
