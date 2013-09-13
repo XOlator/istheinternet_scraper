@@ -12,7 +12,7 @@ class WebPage < ActiveRecord::Base
   # File storage for HTML page
   include Paperclip::Glue
   has_attached_file :html_page, 
-    :path => "system/web_pages/:attachment/:id_partition/:filename",
+    :path => "system/web_pages/:attachment/:id_partition/:style/:filename",
     :styles =>  {:original => {:format => :html, :processors => [:save_html]}}
   has_attached_file :screenshot, 
     :path => "system/web_pages/:attachment/:id_partition/:style.:extension",
@@ -60,7 +60,6 @@ class WebPage < ActiveRecord::Base
         io.original_filename = [File.basename(self.filename), "html"].join('.')
         self.html_page = io
 
-        # raise "X" 
         raise "Invalid content-type" unless io.content_type.match(/text\/html/i)
 
         # Additional information
@@ -69,15 +68,14 @@ class WebPage < ActiveRecord::Base
         self.last_modified_at = io.last_modified
         self.charset = io.charset
         self.page_status = io.status[0]
-        self.available = true
       end
 
     rescue OpenURI::HTTPError => err
       puts "Fetch Page Error (OpenURI): #{err}"
       self.html_page = nil
       self.html_page_updated_at = Time.now
-      self.available = false
       self.page_status = err.io.status[0]
+      self.availble = false
 
     rescue Timeout::Error => err
       puts "Fetch Page Error (Timeout): #{err}"
