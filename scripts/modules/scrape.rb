@@ -37,7 +37,6 @@ module IsTheInternet
                     _debug("...scraping error. Retrying again shortly (1).", 1)
                   end
                 else
-                  puts page.errors.inspect
                   page.retry!
                   _debug("...scraping error. Retrying again shortly (2).", 1)
                 end

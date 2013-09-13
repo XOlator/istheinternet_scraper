@@ -83,6 +83,36 @@ end
 
 
 namespace :paperclip do
+  task :permissions do
+    require 'aws/s3'
+    
+    # Load credentials
+    s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys
+    bn = s3_options[:bucket]
+    
+    # Establish S3 connection
+    s3_options.delete(:bucket_name)
+    s3 = AWS::S3.new(s3_options)
+    b = s3.buckets[bn]
+
+    wp_p = [:original]
+    wp_ct = WebPage.count
+
+    WebPage.all.each_with_index do |a, n|
+      wp_p.each do |s|
+        p = a.html_page.path(s)
+
+        begin
+          obj = b.objects[p]
+          obj.acl = :public_read
+          puts "Set wphtml #{p} (#{n}/#{wp_ct})"
+        rescue => e
+          puts "Error 2: #{e}"
+        end
+      end unless a.html_page_file_size.blank?
+    end
+  end
+
   task :migrate do
     require 'aws/s3'
     
