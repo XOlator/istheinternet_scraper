@@ -89,6 +89,8 @@ class WebPage < ActiveRecord::Base
     end
   end
 
+
+  # --- HTML Parse Methods ---
   def parse!
     # page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
     _debug(self.html_page.url(:original), 2, self)
@@ -103,8 +105,32 @@ class WebPage < ActiveRecord::Base
   end
 
 
-protected
+  # --- Screenshot Color Palette ---
+  def process_color_palette!
+    return false if self.screenshot_file_size.blank? || self.screenshot_file_size < 1
 
+    color_palette = page.web_page.color_palette rescue nil
+    color_palette ||= page.web_page.build_color_palette
+
+    img = Magick::ImageList.new
+    img.from_blob(open(page.web_page.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+    img.delete_profile('*')
+    # primary = img.pixel_color(0,0)
+    palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
+    primary = palette[0][0]
+
+    color_palette.assign_attributes({
+      :dominant_color => [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+      :dominant_color_red => rgb(primary.red),
+      :dominant_color_green => rgb(primary.blue),
+      :dominant_color_blue => rgb(primary.green),
+      :color_palette => palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
+    })
+    color_palette.save
+  end
+
+
+protected
 
 
 end
