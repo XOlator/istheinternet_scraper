@@ -77,8 +77,8 @@ module IsTheInternet
 
                 # Nothing in queue. Pause for a few seconds
                 else
-                  # _debug('.')
-                  sleep(1)
+                  _debug('Screenshot: sleep ...')
+                  sleep(5)
                 end
               end
             rescue Timeout::Error => err

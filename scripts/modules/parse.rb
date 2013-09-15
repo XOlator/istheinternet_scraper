@@ -45,6 +45,7 @@ module IsTheInternet
 
               # Nothing in queue. Pause for a few seconds
               else
+                _debug('Parse: sleep ...')
                 sleep(5)
               end
             end

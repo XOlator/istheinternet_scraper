@@ -46,6 +46,7 @@ module IsTheInternet
 
               # Nothing in queue. Pause for a few seconds
               else
+                _debug('Process: sleep ...')
                 sleep(5)
               end
             end
