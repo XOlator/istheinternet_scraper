@@ -46,7 +46,7 @@ _heading(parts.map{|k,v| "#{k} : #{v}"}.join(" -- "))
 def spawn_thread(p,i)
   return false unless @run_active
 
-  sleep(0.25) # Give each a second to spin up
+  sleep(1) # Give each a second to spin up
 
   Thread.new {
     Thread.current[:name] = "#{p}_#{i}"
