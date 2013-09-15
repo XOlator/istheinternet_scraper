@@ -47,23 +47,29 @@ TWEET_CONFIG = YAML::load(File.open("#{APP_ROOT}/twitter.yml"))[APP_ENV]
 # SETUP DATABASE
 # require 'pg'
 require 'mysql2'
-ActiveRecord::Base.establish_connection( YAML::load(File.open("#{APP_ROOT}/database.yml"))[APP_ENV] )
+@DB = ActiveRecord::Base.establish_connection( YAML::load(File.open("#{APP_ROOT}/database.yml"))[APP_ENV] )
 
-# REQUIRE DATABASE MODELS
-Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
-Dir.glob("#{APP_ROOT}/helpers/*.rb").each{|r| require r}
+begin
+  # REQUIRE DATABASE MODELS
+  Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
+  Dir.glob("#{APP_ROOT}/helpers/*.rb").each{|r| require r}
 
 
-# SETUP TWITTER
-client = Twitter.configure do |config|
-  config.consumer_key = TWEET_CONFIG['consumer_token']
-  config.consumer_secret = TWEET_CONFIG['consumer_secret']
-  config.oauth_token = TWEET_CONFIG['access_token']
-  config.oauth_token_secret = TWEET_CONFIG['access_secret']
+  # SETUP TWITTER
+  client = Twitter.configure do |config|
+    config.consumer_key = TWEET_CONFIG['consumer_token']
+    config.consumer_secret = TWEET_CONFIG['consumer_secret']
+    config.oauth_token = TWEET_CONFIG['access_token']
+    config.oauth_token_secret = TWEET_CONFIG['access_secret']
+  end
+
+
+  ct, hex_color, color_name = ColorPalette.count, ColorPalette.hex_color, ''
+  str = "After #{ct} results, the color of the Internet is ##{hex_color}."# (#{color_name})."
+  client.update_profile_colors(:profile_background_color => hex_color)
+  client.update(str)
+rescue => err
+  _error(err)
+ensure
+  @DB.close rescue nil
 end
-
-
-ct, hex_color, color_name = ColorPalette.count, ColorPalette.hex_color, ''
-str = "After #{ct} results, the color of the Internet is ##{hex_color}."# (#{color_name})."
-client.update_profile_colors(:profile_background_color => hex_color)
-client.update(str)

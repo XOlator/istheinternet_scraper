@@ -29,7 +29,7 @@ APP_CONFIG = YAML::load(File.open("#{APP_ROOT}/config.yml"))[APP_ENV]
 # SETUP DATABASE
 # require 'pg'
 require 'mysql2'
-ActiveRecord::Base.establish_connection( YAML::load(File.open("#{APP_ROOT}/database.yml"))[APP_ENV] )
+@DB = ActiveRecord::Base.establish_connection( YAML::load(File.open("#{APP_ROOT}/database.yml"))[APP_ENV] )
 
 # REQUIRE DATABASE MODELS
 Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}

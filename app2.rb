@@ -79,14 +79,26 @@ result = Proc.new{|parts,opts|
 
   # Kill threads upon kill command
   trap(0) do
-    threads.each {|thread| thread[:thread].exit }
-    _debug('...done0!')
+    begin
+      threads.each {|thread| thread[:thread].exit }
+    rescue => err
+      _error(err)
+    ensure
+      @DB.close rescue nil
+      _debug('...done0!')
+    end
   end
 
   trap(2) do
-    threads.each {|thread| thread[:thread].exit }
-    _debug('...done2!')
-    exit
+    begin
+      threads.each {|thread| thread[:thread].exit }
+    rescue => err
+      _error(err)
+    ensure
+      @DB.close rescue nil
+      _debug('...done2!')
+      exit
+    end
   end
 
   # Keep-alive
