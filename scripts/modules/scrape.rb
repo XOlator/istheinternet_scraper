@@ -35,6 +35,7 @@ module IsTheInternet
                         page.step!(:scrape)
                         _debug("...scraping done", 1, [page, web_page])
                       else
+                        puts page.web_page.inspect
                         page.retry!
                         _debug("...scraping error. Retrying again shortly (1).", 1, [page, web_page])
                       end
