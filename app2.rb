@@ -91,18 +91,18 @@ result = Proc.new{|parts,opts|
 
   # Keep-alive
   while !threads.blank? do
-    threads.each do |thread|
+    threads.each_with_index do |thread, i|
       begin
         if thread[:thread].status.blank?
           thread[:thread].exit rescue nil
           _subheading("Respawning thread: #{thread[:part]}_#{thread[:i]}...")
-          spawn_thread(thread[:part], thread[:i])
+          thread[i][:thread] = spawn_thread(thread[:part], thread[:i])
         else
           thread[:thread].join(0.5)
         end
       rescue
-          _subheading("Respawning thread2: #{thread[:part]}_#{thread[:i]}...")
-        spawn_thread(thread[:part], thread[:i])
+        _subheading("Respawning thread2: #{thread[:part]}_#{thread[:i]}...")
+        threads[i][:thread] = spawn_thread(thread[:part], thread[:i])
       end
     end
   end
