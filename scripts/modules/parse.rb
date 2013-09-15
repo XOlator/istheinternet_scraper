@@ -17,7 +17,7 @@ module IsTheInternet
         while @running
           begin
             Timeout::timeout(15) do # 15 seconds
-              page = PageQueue.parse.first rescue nil
+              page = PageQueue.parse.first# rescue nil
 
               # Process if something is found
               unless page.blank?

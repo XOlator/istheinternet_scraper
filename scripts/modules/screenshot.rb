@@ -38,7 +38,7 @@ module IsTheInternet
           while @running
             begin
               Timeout::timeout(25) do # 25 seconds
-                page = PageQueue.screenshot.first rescue nil
+                page = PageQueue.screenshot.first# rescue nil
 
                 # Process if something is found
                 unless page.blank?
