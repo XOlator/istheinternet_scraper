@@ -41,7 +41,13 @@ PageQueue::STEPS.each{|k,v| parts[k] = 1} if parts.blank?
 _heading(parts.map{|k,v| "#{k} : #{v}"}.join(" -- "))
 
 
+@run_active = true
+
 def spawn_thread(p,i)
+  return false unless @run_active
+
+  sleep(0.25) # Give each a second to spin up
+
   Thread.new {
     Thread.current[:name] = "#{p}_#{i}"
     Thread.current[:info] = {:name => p, :number => i}
@@ -68,7 +74,6 @@ result = Proc.new{|parts,opts|
       (1..q).each do |i|
         _subheading("Spawning thread: #{part}_#{i}...")
         threads << {:part => part, :i => i, :thread => spawn_thread(part,i)}
-        sleep(0.25) # Give each a second to spin up
       end
     end
 
@@ -80,6 +85,7 @@ result = Proc.new{|parts,opts|
   # Kill threads upon kill command
   trap(0) do
     begin
+      @run_active = false
       threads.each {|thread| thread[:thread].exit }
     rescue => err
       _error(err)
@@ -91,6 +97,7 @@ result = Proc.new{|parts,opts|
 
   trap(2) do
     begin
+      @run_active = false
       threads.each {|thread| thread[:thread].exit }
     rescue => err
       _error(err)

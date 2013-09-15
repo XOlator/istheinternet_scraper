@@ -82,7 +82,7 @@ module IsTheInternet
                 end
               end
             rescue Timeout::Error => err
-              _error("Screenshot Timeout error: #{err}", 1, [page || nil])
+              _error("Screenshot Timeout error: #{err}", 1)
               page.unlock! rescue nil
               rand_sleep
               driver.quit rescue nil
@@ -90,7 +90,7 @@ module IsTheInternet
           end
 
         rescue => err
-          _error("#{Thread.current[:name] if Thread.current} Screenshot Error (2): #{err}", 0, [page || nil])
+          _error("#{Thread.current[:name] if Thread.current} Screenshot Error (2): #{err}", 0)
         
         ensure
           driver.quit rescue nil
