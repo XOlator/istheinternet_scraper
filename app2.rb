@@ -90,7 +90,7 @@ result = Proc.new{|parts,opts|
     rescue => err
       _error(err)
     ensure
-      @DB.close rescue nil
+      ActiveRecord::Base.connection.close
       _debug('...done0!')
     end
   end
@@ -102,7 +102,7 @@ result = Proc.new{|parts,opts|
     rescue => err
       _error(err)
     ensure
-      @DB.close rescue nil
+      ActiveRecord::Base.connection.close
       _debug('...done2!')
       exit
     end

@@ -71,5 +71,5 @@ begin
 rescue => err
   _error(err)
 ensure
-  @DB.close rescue nil
+  ActiveRecord::Base.connection.close
 end
