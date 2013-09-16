@@ -115,6 +115,7 @@ class WebPage < ActiveRecord::Base
 
     Timeout::timeout(20) do # 20 seconds
       img = Magick::ImageList.new
+      _debug(self.screenshot.url(:original), 1, [self])
       img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
       img.delete_profile('*')
       # primary = img.pixel_color(0,0)
