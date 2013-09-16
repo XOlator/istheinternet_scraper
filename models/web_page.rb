@@ -113,25 +113,30 @@ class WebPage < ActiveRecord::Base
     color_palette = self.color_palette rescue nil
     color_palette ||= self.build_color_palette
 
-    img = Magick::ImageList.new
-    img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
-    img.delete_profile('*')
-    # primary = img.pixel_color(0,0)
-    palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
-    primary = palette[0][0]
+    Timeout::timeout(20) do # 20 seconds
+      img = Magick::ImageList.new
+      img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+      img.delete_profile('*')
+      # primary = img.pixel_color(0,0)
+      palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
+      primary = palette[0][0]
 
-    color_palette.assign_attributes({
-      :dominant_color => [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
-      :dominant_color_red => rgb(primary.red),
-      :dominant_color_green => rgb(primary.blue),
-      :dominant_color_blue => rgb(primary.green),
-      :color_palette => palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
-    })
-    color_palette.save
+      color_palette.assign_attributes({
+        :dominant_color => [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+        :dominant_color_red => rgb(primary.red),
+        :dominant_color_green => rgb(primary.blue),
+        :dominant_color_blue => rgb(primary.green),
+        :color_palette => palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
+      })
+      color_palette.save
+    end
   end
 
 
 protected
 
+  def rgb(i=0)
+    (@q18 || i > 255 ? ((255*i)/65535) : i).round
+  end
 
 end

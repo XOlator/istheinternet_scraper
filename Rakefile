@@ -82,6 +82,20 @@ namespace :db do
 end
 
 
+namespace :colors do
+  task :process do
+    ColorPalette.all.each do |c|
+      _debug("Process ##{c.web_page.id} - ##{c.id}", 0, [c.web_page])
+      begin
+        c.web_page.process_color_palette!
+        _debug("...done!", 1, [c.web_page])
+      rescue => err
+        _debug(err, 1, [c.web_page])
+      end
+    end
+  end
+end
+
 namespace :paperclip do
   task :permissions do
     require 'aws/s3'
