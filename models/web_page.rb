@@ -110,11 +110,11 @@ class WebPage < ActiveRecord::Base
   def process_color_palette!
     return false if self.screenshot_file_size.blank? || self.screenshot_file_size < 1
 
-    color_palette = page.web_page.color_palette rescue nil
-    color_palette ||= page.web_page.build_color_palette
+    color_palette = self.color_palette rescue nil
+    color_palette ||= self.build_color_palette
 
     img = Magick::ImageList.new
-    img.from_blob(open(page.web_page.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+    img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
     img.delete_profile('*')
     # primary = img.pixel_color(0,0)
     palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
