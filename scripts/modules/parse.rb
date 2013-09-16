@@ -50,7 +50,7 @@ module IsTheInternet
               end
             end
           rescue Timeout::Error => err
-            _error("Parse Timeout error: #{err}", 1, [page || nil])
+            _error("Parse Timeout error: #{err}", 1)
             page.unlock! rescue nil
             rand_sleep
           end
