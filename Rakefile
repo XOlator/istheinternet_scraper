@@ -84,7 +84,7 @@ end
 
 namespace :colors do
   task :process do
-    ColorPalette.order('web_page_id asc').where('updated_at < ?', (Time.now-12.hours)).all.each do |c|
+    ColorPalette.order('web_page_id asc').where('updated_at < ?', (Time.now-1.day)).find_in_batches(:batch_size => 10).each do |c|
       _debug("Process ##{c.web_page.id} - ##{c.id}", 0, [c.web_page])
       begin
         if c.web_page.process_color_palette!
