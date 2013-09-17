@@ -84,11 +84,15 @@ end
 
 namespace :colors do
   task :process do
-    ColorPalette.all.each do |c|
+    ColorPalette.order('web_page_id asc').where('updated_at < ?', (Time.now-12.hours)).all.each do |c|
       _debug("Process ##{c.web_page.id} - ##{c.id}", 0, [c.web_page])
       begin
-        c.web_page.process_color_palette!
-        _debug("...done!", 1, [c.web_page])
+        if c.web_page.process_color_palette!
+          _debug(c.web_page.color_palette.dominant_color.inspect, 1, [c.web_page.color_palette])
+          _debug("...done!", 1, [c.web_page])
+        else
+          _debug("...error!", 1, [c.web_page])
+        end
       rescue => err
         _debug(err, 1, [c.web_page])
       end
