@@ -113,7 +113,7 @@ class WebPage < ActiveRecord::Base
     color_palette = self.color_palette rescue nil
     color_palette ||= self.build_color_palette
 
-    Timeout::timeout(20) do # 20 seconds
+    Timeout::timeout(60) do # 60 seconds
       img = Magick::ImageList.new
       _debug(self.screenshot.url(:original), 1, [self])
       img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
