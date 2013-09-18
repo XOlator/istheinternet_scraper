@@ -35,14 +35,14 @@ CRAWLER_USER_AGENT = "WhatColor.IsTheInter.net/#{CRAWLER_VERSION} (http://whatco
 
 
 # REQUIRE MODULES/GEMS
-%w{yaml active_record twitter geocoder geocoder/models/active_record}.each{|r| require r}
+require "#{APP_ROOT}/config.rb"
+
 
 # INITIALIZERS
 Dir.glob("#{APP_ROOT}/initializers/*.rb").each{|r| require r}
 
 # CONFIG
 APP_CONFIG = YAML::load(File.open("#{APP_ROOT}/config.yml"))[APP_ENV]
-TWEET_CONFIG = YAML::load(File.open("#{APP_ROOT}/twitter.yml"))[APP_ENV]
 
 # SETUP DATABASE
 # require 'pg'
@@ -55,22 +55,36 @@ begin
   Dir.glob("#{APP_ROOT}/helpers/*.rb").each{|r| require r}
 
 
-  # SETUP TWITTER
-  client = Twitter.configure do |config|
-    config.consumer_key = TWEET_CONFIG['consumer_token']
-    config.consumer_secret = TWEET_CONFIG['consumer_secret']
-    config.oauth_token = TWEET_CONFIG['access_token']
-    config.oauth_token_secret = TWEET_CONFIG['access_secret']
-  end
+    WebPage.find_in_batches(batch_size: 10) do |g|
+      g.each do |c|
+        next if c.blank? || c.screenshot_file_size.blank?
+        
+        if c.screenshot_updated_at.blank? || c.screenshot_updated_at < (Time.now-1.day)
+          begin
+            _debug("Repixel", 0, c)
+            Timeout::timeout(60) do # 60 seconds
+              c.screenshot.reprocess!(:pixel)
+            end
+            c.update_attribute(:screenshot_updated_at, Time.now)
+            _debug("...done!", 1, c)
+          rescue => err
+            _debug(err, 1, c)
+            next
+          end
+        end
+
+        if c.color_palette.blank? || c.color_palette.pixel_color.blank? # assume
+          _debug("Pixel Color", 0, c)
+          if c.process_pixel_color!
+            _debug(c.color_palette.pixel_color.inspect, 1, c)
+          else
+            _debug("...error", 1, c)
+          end
+        end
+      end
+    end
 
 
-  ct, pixel_hex_color, dom_hex_color, hsl_hex_color, color_name = ColorPalette.count, ColorPalette.pixel_hex_color, ColorPalette.dominant_hex_color, ColorPalette.hsl_hex_color, ''
-  str = "After #{ct} results, the average color of the Internet is ##{pixel_hex_color}. (Dominant average: ##{dom_hex_color}).)"
-  # HSL average: ##{hsl_hex_color})"
-  # (#{color_name})."
-  puts str
-  client.update_profile_colors(profile_background_color: pixel_hex_color)
-  client.update(str)
 rescue => err
   _error(err)
 ensure

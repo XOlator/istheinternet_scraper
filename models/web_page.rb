@@ -4,7 +4,7 @@ class WebPage < ActiveRecord::Base
 
   # Nicer fetching by url name
   extend FriendlyId
-  friendly_id :path, :use => :scoped, :scope => :web_site_id
+  friendly_id :path, use: :scoped, scope: :web_site_id
 
   # Nokogiri
   require 'nokogiri'
@@ -12,14 +12,15 @@ class WebPage < ActiveRecord::Base
   # File storage for HTML page
   include Paperclip::Glue
   has_attached_file :html_page, 
-    :path => "system/web_pages/:attachment/:id_partition/:style/:filename",
-    :styles =>  {:original => {:format => :html, :processors => [:save_html]}}
+    path: "system/web_pages/:attachment/:id_partition/:style/:filename",
+    styles:  {original: {format: :html, processors: [:save_html]}}
   has_attached_file :screenshot, 
-    :path => "system/web_pages/:attachment/:id_partition/:style.:extension",
-    :styles => {:thumbnail => "", :pixel => ["1x1#", :png]},
-    :convert_options => {:thumbnail => "-gravity north -thumbnail 300x300^ -extent 300x300"}
+    path: "system/web_pages/:attachment/:id_partition/:style.:extension",
+    styles: {thumbnail: "", pixel: ["1x1#", :png]},
+    convert_options: {thumbnail: "-gravity north -thumbnail 300x300^ -extent 300x300"}
 
     # TODO : REPROCESS UP TO id <= 27000
+
 
   # --- Associations ----------------------------------------------------------
 
@@ -31,12 +32,12 @@ class WebPage < ActiveRecord::Base
 
   # --- Validations -----------------------------------------------------------
 
-  validates :url, :presence => true, :format => {:with => /\Ahttp/i}
+  validates :url, presence: true, format: {with: /\Ahttp/i}
 
 
   # --- Scopes ----------------------------------------------------------------
 
-  scope :available, where(:available => true)
+  scope :available, where(available: true)
 
 
   # --- Methods ---------------------------------------------------------------
@@ -55,7 +56,7 @@ class WebPage < ActiveRecord::Base
   def rescrape!
     begin
       status = Timeout::timeout(15) do # 15 seconds
-        io = open(self.url, :read_timeout => 15, "User-Agent" => CRAWLER_USER_AGENT, :allow_redirections => :all)
+        io = open(self.url, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT, allow_redirections: :all)
         io.class_eval { attr_accessor :original_filename }
         io.original_filename = [File.basename(self.filename), "html"].join('.')
         self.html_page = io
@@ -96,7 +97,7 @@ class WebPage < ActiveRecord::Base
     # page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
     _debug(self.html_page.url(:original), 2, self)
 
-    page = Nokogiri::HTML(open(self.html_page.url(:original), :read_timeout => 15, "User-Agent" => CRAWLER_USER_AGENT).read)
+    page = Nokogiri::HTML(open(self.html_page.url(:original), read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT).read)
     self.title = page.css('title').to_s
     self.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
     self.save
@@ -116,18 +117,42 @@ class WebPage < ActiveRecord::Base
     Timeout::timeout(60) do # 60 seconds
       img = Magick::ImageList.new
       _debug(self.screenshot.url(:original), 1, [self])
-      img.from_blob(open(self.screenshot.url(:original), :read_timeout => 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+      img.from_blob(open(self.screenshot.url(:original), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
       img.delete_profile('*')
       # primary = img.pixel_color(0,0)
       palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
       primary = palette[0][0]
 
       color_palette.assign_attributes({
-        :dominant_color => [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
-        :dominant_color_red => rgb(primary.red),
-        :dominant_color_green => rgb(primary.blue),
-        :dominant_color_blue => rgb(primary.green),
-        :color_palette => palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
+        dominant_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+        dominant_color_red: rgb(primary.red),
+        dominant_color_green: rgb(primary.blue),
+        dominant_color_blue: rgb(primary.green),
+        color_palette: palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
+      })
+      color_palette.save
+    end
+  end
+
+  # --- Screenshot Color Palette ---
+  def process_pixel_color!
+    return false if self.screenshot_file_size.blank? || self.screenshot_file_size < 1
+
+    color_palette = self.color_palette rescue nil
+    color_palette ||= self.build_color_palette
+
+    Timeout::timeout(20) do # 20 seconds
+      img = Magick::ImageList.new
+      _debug(self.screenshot.url(:pixel), 1, [self])
+      img.from_blob(open(self.screenshot.url(:pixel), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+      img.delete_profile('*')
+      primary = img.pixel_color(0,0)
+
+      color_palette.assign_attributes({
+        pixel_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+        pixel_color_red: rgb(primary.red),
+        pixel_color_green: rgb(primary.blue),
+        pixel_color_blue: rgb(primary.green)
       })
       color_palette.save
     end
