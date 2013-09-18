@@ -55,7 +55,7 @@ class WebPage < ActiveRecord::Base
 
   def rescrape!
     begin
-      status = Timeout::timeout(15) do # 15 seconds
+      Timeout::timeout(15) do # 15 seconds
         io = open(self.url, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT, allow_redirections: :all)
         io.class_eval { attr_accessor :original_filename }
         io.original_filename = [File.basename(self.filename), "html"].join('.')
@@ -114,24 +114,40 @@ class WebPage < ActiveRecord::Base
     color_palette = self.color_palette rescue nil
     color_palette ||= self.build_color_palette
 
-    Timeout::timeout(60) do # 60 seconds
-      img = Magick::ImageList.new
-      _debug(self.screenshot.url(:original), 1, [self])
-      img.from_blob(open(self.screenshot.url(:original), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
-      img.delete_profile('*')
-      # primary = img.pixel_color(0,0)
-      palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
-      primary = palette[0][0]
+    begin
+      Timeout::timeout(60) do # 60 seconds
+        img = Magick::ImageList.new
+        _debug(self.screenshot.url(:original), 1, [self])
 
-      color_palette.assign_attributes({
-        dominant_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
-        dominant_color_red: rgb(primary.red),
-        dominant_color_green: rgb(primary.blue),
-        dominant_color_blue: rgb(primary.green),
-        color_palette: palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
-      })
-      color_palette.save
+        img.from_blob(open(self.screenshot.url(:original), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+        img.delete_profile('*')
+        # primary = img.pixel_color(0,0)
+        palette = img.quantize(10).color_histogram.sort{|a,b| b.last <=> a.last}
+        primary = palette[0][0]
+
+        color_palette.assign_attributes({
+          dominant_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+          dominant_color_red: rgb(primary.red),
+          dominant_color_green: rgb(primary.blue),
+          dominant_color_blue: rgb(primary.green),
+          color_palette: palette.map{|p,c,r| [rgb(p.red), rgb(p.green), rgb(p.blue)]}
+        })
+        color_palette.save
+      end
+
+    rescue OpenURI::HTTPError => err
+      _debug("Fetch Palette Error (OpenURI): #{err}", 1, self)
+      false
+
+    rescue Timeout::Error => err
+      _debug("Fetch Palette Error (Timeout): #{err}", 1, self)
+      false
+
+    rescue => err
+      _debug("Fetch Palette Error (Error): #{err}", 1, self)
+      false
     end
+      
   end
 
   # --- Screenshot Color Palette ---
@@ -141,20 +157,35 @@ class WebPage < ActiveRecord::Base
     color_palette = self.color_palette rescue nil
     color_palette ||= self.build_color_palette
 
-    Timeout::timeout(20) do # 20 seconds
-      img = Magick::ImageList.new
-      _debug(self.screenshot.url(:pixel), 1, [self])
-      img.from_blob(open(self.screenshot.url(:pixel), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
-      img.delete_profile('*')
-      primary = img.pixel_color(0,0)
+    begin
+      Timeout::timeout(20) do # 20 seconds
+        img = Magick::ImageList.new
+        _debug(self.screenshot.url(:pixel), 1, [self])
 
-      color_palette.assign_attributes({
-        pixel_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
-        pixel_color_red: rgb(primary.red),
-        pixel_color_green: rgb(primary.blue),
-        pixel_color_blue: rgb(primary.green)
-      })
-      color_palette.save
+        img.from_blob(open(self.screenshot.url(:pixel), read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
+        img.delete_profile('*')
+        primary = img.pixel_color(0,0)
+
+        color_palette.assign_attributes({
+          pixel_color: [rgb(primary.red), rgb(primary.green), rgb(primary.blue)],
+          pixel_color_red: rgb(primary.red),
+          pixel_color_green: rgb(primary.blue),
+          pixel_color_blue: rgb(primary.green)
+        })
+        color_palette.save
+      end
+
+    rescue OpenURI::HTTPError => err
+      _debug("Fetch Pixel Error (OpenURI): #{err}", 1, self)
+      false
+
+    rescue Timeout::Error => err
+      _debug("Fetch Pixel Error (Timeout): #{err}", 1, self)
+      false
+
+    rescue => err
+      _debug("Fetch Pixel Error (Error): #{err}", 1, self)
+      false
     end
   end
 
