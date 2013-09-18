@@ -2,6 +2,9 @@ class WebPage < ActiveRecord::Base
 
   # self.per_page = 50
 
+  STEPS = [:none, :screenshot, :process, :scrape, :parse, :complete]
+
+
   # Nicer fetching by url name
   extend FriendlyId
   friendly_id :path, use: :scoped, scope: :web_site_id
@@ -11,15 +14,23 @@ class WebPage < ActiveRecord::Base
 
   # File storage for HTML page
   include Paperclip::Glue
-  has_attached_file :html_page, 
-    path: "system/web_pages/:attachment/:id_partition/:style/:filename",
-    styles:  {original: {format: :html, processors: [:save_html]}}
-  has_attached_file :screenshot, 
-    path: "system/web_pages/:attachment/:id_partition/:style.:extension",
-    styles: {thumbnail: "", pixel: ["1x1#", :png]},
-    convert_options: {thumbnail: "-gravity north -thumbnail 300x300^ -extent 300x300"}
 
-    # TODO : REPROCESS UP TO id <= 27000
+  has_attached_file :html_page, 
+    path: "storage/web_pages/:attachment/:id_partition/:style/:filename",
+    styles:  {
+      original: {format: :html, processors: [:save_html]}
+    }
+
+  has_attached_file :screenshot, 
+    path: "storage/web_pages/:attachment/:id_partition/:style.:extension",
+    styles: {
+      thumbnail: "",
+      pixel: ["1x1#", :png]
+    },
+    convert_options: {
+      thumbnail: "-gravity north -thumbnail 300x300^ -extent 300x300 -background white -flatten +matte",
+      pixel: "-background white -flatten +matte"
+    }
 
 
   # --- Associations ----------------------------------------------------------
@@ -37,10 +48,31 @@ class WebPage < ActiveRecord::Base
 
   # --- Scopes ----------------------------------------------------------------
 
+  STEPS.each_with_index do |v,i|
+    scope "#{v}?".to_sym, where('step_index >= ?', i)
+  end
+    
+
   scope :available, where(available: true)
 
 
   # --- Methods ---------------------------------------------------------------
+
+  # Mark next step. Do save to ensure is passable
+  def step!(s)
+    return false unless STEPS.include?(s)
+    self.save && self.update_attribute(:step_index, STEPS.index(s))
+  end
+
+  # Check if has completed step
+  def step?(s)
+    return false unless STEPS.include?(s)
+    self.step_index >= STEPS.index(s)
+  end
+
+  # Get the current step
+  def step; STEPS[self.step_index]; end
+
 
 
   def filename
@@ -48,6 +80,8 @@ class WebPage < ActiveRecord::Base
     f = File.basename(uri.path)
     (f.blank? ? 'index' : f)
   end
+
+
 
   # --- HTML scrape methods ---
   def scraped?; !!self.available? && !self.html_page_file_size.blank?; end
@@ -91,20 +125,6 @@ class WebPage < ActiveRecord::Base
     end
   end
 
-
-  # --- HTML Parse Methods ---
-  def parse!
-    # page = Nokogiri::HTML(Paperclip.io_adapters.for(self.html_page).read)
-    _debug(self.html_page.url(:original), 2, self)
-
-    page = Nokogiri::HTML(open(self.html_page.url(:original), read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT).read)
-    self.title = page.css('title').to_s
-    self.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
-    self.save
-
-    follow = page.css('meta[name="robots"]')[0].attributes['content'].to_s rescue 'index,follow'
-    page.css('a[href]').each{|h| PageQueue::add(h.attributes['href']) } unless follow.match(/nofollow/i)  
-  end
 
 
   # --- Screenshot Color Palette ---

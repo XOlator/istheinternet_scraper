@@ -47,4 +47,10 @@ def _error(msg, spaces=0, obj=[])
   str = [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
   str << msg 
   puts "[#{Time.now.to_s(:db)}][ERROR] #{'   ' * spaces}#{str.join(' ')}"
+  if msg.respond_to?(:backtrace)
+    l = "[#{Time.now.to_s(:db)}][ERROR] #{'   ' * (spaces+1)}".size
+    msg.backtrace.each do |m|
+      puts " #{' ' * (l)}#{m}"
+    end
+  end
 end

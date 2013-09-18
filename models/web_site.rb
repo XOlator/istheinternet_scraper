@@ -23,8 +23,8 @@ class WebSite < ActiveRecord::Base
   # File storage for DNS record
   include Paperclip::Glue
   has_attached_file :whois_record, 
-    :path => "system/web_sites/:attachment/:id_partition/:filename",
-    :style => {:original => [:txt]}
+    path: "storage/web_sites/:attachment/:id_partition/:filename",
+    style: {original: [:txt]}
 
 
   # --- Associations ----------------------------------------------------------
