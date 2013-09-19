@@ -6,11 +6,31 @@ module IsTheInternet
 
       include Sidekiq::Worker
 
+      FORCE_ALL_CAPTURE = true #tmp
+      FORCE_ALL_CAPTURE ||= false
 
       def initialize(url,force=[])
         @url = url
         @force_process = force || []
+
+        # TODO : Handle success/failure
         capture!
+
+      end
+
+      # Push a URL into the queue if not previously scraped
+      def push_to_queue(href)
+        begin
+          u = Addressable::URI.parse(href)
+          return if WebPage.where('LOWER(url) = ?', u.to_s.downcase).complete?.count > 0
+          # TODO : return if already in QUEUE
+
+          # TODO : PUSH TO SIDEKIQ IF NOT
+          _debug("> Push #{u} to queue!", 1, [web_page])
+
+        rescue => err
+          nil # Just skip if an error occurs
+        end
       end
 
       # Create driver connection
@@ -24,6 +44,9 @@ module IsTheInternet
         @driver.quit rescue nil
         @driver = nil
       end
+
+      # Track if error
+      def error!(e); @_error = e; end
 
       # Parse URL
       def uri
@@ -184,12 +207,23 @@ module IsTheInternet
 
       # Parse the current page for additional links to add into the queue
       def capture_parse
-        # TODO
-        # web_page.title = page.css('title').to_s
-        # web_page.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
-        # 
-        # follow = page.css('meta[name="robots"]')[0].attributes['content'].to_s rescue 'index,follow'
-        # page.css('a[href]').each{|h| PageQueue::add(h.attributes['href']) } unless follow.match(/nofollow/i)
+        web_page.title = driver.title
+        web_page.meta_tags = driver.find_elements(tag_name: 'meta').map{|e|
+          driver.execute_script("return arguments[0].attributes;", e).map{|v|
+            begin
+              t = {}; t[ v['name'] ] = v['value']; t
+            rescue
+              nil
+            end
+          } rescue nil
+        }.reject(&:blank?)
+
+        follow = driver.find_element(xpath: "//meta[@name='robots']").attribute('content') rescue 'index,follow'
+        driver.find_elements(tag_name: 'a').each{|e| 
+          href = e.attribute('href') rescue nil
+          next if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
+          push_to_queue(href)
+        } unless follow.match(/nofollow/i)
 
         raise "Unable to parse." unless web_page.step!(:parse)
         _debug("...done!", 1, [web_page])
@@ -214,10 +248,10 @@ module IsTheInternet
         begin
           _debug("Capturing #{uri}", 0, [web_page])
 
-          # if web_page.step?(:complete) && @force_process.blank?
-          #   _debug("Previously completed!", 1, [web_page])
-          #   return
-          # end
+          if !FORCE_ALL_CAPTURE && web_page.step?(:complete) && @force_process.blank?
+            _debug("Previously completed!", 1, [web_page])
+            return
+          end
 
           Timeout::timeout(120) do # 120 seconds
             # Open up the web page, ensure if valid
@@ -225,7 +259,7 @@ module IsTheInternet
 
             # Go through each step
             WebPage::STEPS.each do |v|
-              # next if web_page.step?(v) && !@force_process.include?(v)
+              next if !FORCE_ALL_CAPTURE && web_page.step?(v) && !@force_process.include?(v)
 
               n = "capture_#{v}"
               if respond_to?(n)
@@ -237,9 +271,11 @@ module IsTheInternet
 
         rescue Timeout::Error => err
           _error("Timeout error: #{err}", 1)
+          error!(err)
 
         rescue => err
           _error(err, 1)
+          error!(err)
 
         ensure
           stop_driver rescue nil

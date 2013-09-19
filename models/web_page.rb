@@ -9,9 +9,6 @@ class WebPage < ActiveRecord::Base
   extend FriendlyId
   friendly_id :path, use: :scoped, scope: :web_site_id
 
-  # Nokogiri
-  require 'nokogiri'
-
   # File storage for HTML page
   include Paperclip::Glue
 
@@ -73,8 +70,7 @@ class WebPage < ActiveRecord::Base
   # Get the current step
   def step; STEPS[self.step_index]; end
 
-
-
+  # Filename for use w/ Paperclip
   def filename
     uri = Addressable::URI.parse(self.url)
     f = File.basename(uri.path)

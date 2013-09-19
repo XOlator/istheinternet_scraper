@@ -37,13 +37,13 @@ class ColorPalette < ActiveRecord::Base
     ("%02x%02x%02x" % [color_avg(:dominant_color_red), color_avg(:dominant_color_green), color_avg(:dominant_color_blue)]).upcase
   end
 
-  def self.hsl_hex_color
-    h,s,l = color_avg(:pixel_color_hue), color_avg(:pixel_color_saturation), color_avg(:pixel_color_value)
-    # h,s,l = color_avg(:dominant_color_hue), color_avg(:dominant_color_saturation), color_avg(:dominant_color_value)
-    # puts h,s,l
-    # rgb = Color::HSL.from_fraction(h,s,l).to_rgb
-    # rgb.html.gsub(/\#/, '').upcase
-  end
+  # def self.hsl_hex_color
+  #   h,s,l = color_avg(:pixel_color_hue), color_avg(:pixel_color_saturation), color_avg(:pixel_color_value)
+  #   # h,s,l = color_avg(:dominant_color_hue), color_avg(:dominant_color_saturation), color_avg(:dominant_color_value)
+  #   # puts h,s,l
+  #   # rgb = Color::HSL.from_fraction(h,s,l).to_rgb
+  #   # rgb.html.gsub(/\#/, '').upcase
+  # end
 
   def convert_rgb_to_hsl
     begin
