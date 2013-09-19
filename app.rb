@@ -41,8 +41,10 @@ Dir.glob("#{APP_ROOT}/scripts/modules/*.rb").each{|r| require r}
 # puts parts.inspect
 
 
-
+_debug("START")
+sleep(2)
 IsTheInternet::Page::Capture.new('http://xolator.com')
+# IsTheInternet::Page::Capture.new('http://fffff.at')
 
 
 

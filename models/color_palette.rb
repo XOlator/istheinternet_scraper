@@ -14,12 +14,12 @@ class ColorPalette < ActiveRecord::Base
 
   before_save :convert_rgb_to_hsl
 
-  validates :pixel_color_red,       presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
-  validates :pixel_color_green,     presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
-  validates :pixel_color_blue,      presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
-  validates :dominant_color_red,    presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
-  validates :dominant_color_green,  presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
-  validates :dominant_color_blue,   presence: true, numericality: {greater_than_or_equal_to: 0, less_than: 256}
+  validates :pixel_color_red,       numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
+  validates :pixel_color_green,     numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
+  validates :pixel_color_blue,      numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
+  validates :dominant_color_red,    numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
+  validates :dominant_color_green,  numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
+  validates :dominant_color_blue,   numericality: {greater_than_or_equal_to: 0, less_than: 256}, allow_nil: true, allow_blank: true
 
 
   # --- Scopes ----------------------------------------------------------------

@@ -4,6 +4,7 @@ Paperclip.options[:log] = false
 s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys rescue nil
 
 if s3_options.present?
+  USE_S3 = true
   Paperclip::Attachment.default_options.merge!({
     storage:  :s3,
     bucket:   s3_options[:bucket],
@@ -14,6 +15,7 @@ if s3_options.present?
   })
 end
 
+USE_S3 ||= false
 
 # https://github.com/thoughtbot/paperclip/pull/823
 module Paperclip
