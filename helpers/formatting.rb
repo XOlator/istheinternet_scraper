@@ -24,15 +24,16 @@ end
 
 def _subheading(str)
   return unless defined?(DEBUG) && DEBUG
-  puts "\n\n"
-  puts " #{str.upcase} ".center(TEXT_COL_LEN, '-')
+  puts "\n\n" << " #{str.upcase} ".center(TEXT_COL_LEN, '-')
 end
 
 def _divider(str='-', t=false, b=false)
   return unless defined?(DEBUG) && DEBUG
-  puts "\n\n" if t
-  puts "".center(TEXT_COL_LEN, str)
-  puts "\n\n" if b
+  x = ''
+  x << "\n\n" if t
+  x << "".center(TEXT_COL_LEN, str)
+  x << "\n\n" if b
+  puts x
 end
 
 def _debug(msg, spaces=0, obj=[])
@@ -44,13 +45,15 @@ end
 
 def _error(msg, spaces=0, obj=[])
   # return unless defined?(DEBUG) && DEBUG
-  str = [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
+  x, str = [], [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
   str << msg 
-  puts "[#{Time.now.to_s(:db)}][ERROR] #{'   ' * spaces}#{str.join(' ')}"
+  x << "[#{Time.now.to_s(:db)}][ERROR] #{'   ' * spaces}#{str.join(' ')}"
   if msg.respond_to?(:backtrace)
     l = "[#{Time.now.to_s(:db)}][ERROR] #{'   ' * (spaces+1)}".size
     msg.backtrace.each do |m|
-      puts " #{' ' * (l)}#{m}"
+      x << " #{' ' * (l)}#{m}"
     end
   end
+
+  puts x.join("\n")
 end

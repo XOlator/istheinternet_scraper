@@ -6,32 +6,59 @@ module IsTheInternet
 
       include Sidekiq::Worker
 
-      FORCE_ALL_CAPTURE = true #tmp
+      # FORCE_ALL_CAPTURE = true #tmp
       FORCE_ALL_CAPTURE ||= false
 
-      def initialize(url,force=[])
-        @url = url
-        @force_process = force || []
+      # def initialize(url=nil,force=[])
+      #   puts "URL: #{url}"
+      #   @url = url
+      #   @force_process = force || []
+      # 
+      #   capture!
+      # 
+      #   @_error ? @_error : web_page
+      # end
 
-        # TODO : Handle success/failure
+      def perform(url=nil,force=[])
+        puts "URL: #{url}"
+        @url = url
+        @force_process = [ force || [] ].flatten
+
         capture!
 
+        @_error ? @_error : web_page
       end
 
       # Push a URL into the queue if not previously scraped
       def push_to_queue(href)
         begin
           u = Addressable::URI.parse(href)
-          return if WebPage.where('LOWER(url) = ?', u.to_s.downcase).complete?.count > 0
-          # TODO : return if already in QUEUE
 
-          # TODO : PUSH TO SIDEKIQ IF NOT
-          _debug("> Push #{u} to queue!", 1, [web_page])
+          # Has web page been processed before?
+          if WebPage.where('LOWER(url) = ?', u.to_s.downcase).complete?.count > 0
+            _debug("Already processed: #{url}", 2, [web_page])
+            return
+          end
+
+          # Is page in queue to process?
+          Sidekiq::Queue.new.each do |job|
+            if job.klass == 'IsTheInternet::Page::Capture' && job.args[0] == u.to_s
+              _debug("Already in queue: #{u}", 2, [web_page])
+              return
+            end
+          end
+
+          # Push to queue
+          Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => false, 'args' => [u.to_s])
+          _debug("Added to queue: #{u}", 2, [web_page])
 
         rescue => err
+          # _error("Error with #{href} => #{err}", 1, [web_page])
           nil # Just skip if an error occurs
         end
       end
+
+    protected
 
       # Create driver connection
       def driver(b=:remote,o=nil)
@@ -50,8 +77,7 @@ module IsTheInternet
 
       # Parse URL
       def uri
-        return @uri unless @uri.blank?
-        @uri = Addressable::URI.parse(@url) rescue false
+        @uri ||= Addressable::URI.parse(@url) rescue false
       end
 
       # Parse URL host
@@ -78,7 +104,7 @@ module IsTheInternet
       def web_site
         return @web_site unless @web_site.blank?
         @web_site = WebSite.where('LOWER(host_url) = ?', uri_host.downcase).first rescue nil
-        @web_site ||= WebSite.new(url: uri, host_url: uri_host)
+        @web_site ||= WebSite.new(url: uri.to_s, host_url: uri_host)
 
         if @web_site.new_record?
           # scrape robots
@@ -92,12 +118,12 @@ module IsTheInternet
       def web_page
         return @web_page unless @web_page.blank?
         @web_page = web_site.web_pages.where('LOWER(path) = ?', uri_path.downcase).first rescue nil
-        @web_page ||= web_site.web_pages.build(path: uri_path, url: uri)
+        @web_page ||= web_site.web_pages.build(path: uri_path, url: uri.to_s)
         
         if @web_page.new_record?
           # We need to call the page to get correct status, headers, etc. WebDriver does not support this.
           begin
-            io = open(uri, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT, allow_redirections: :all)
+            io = open(uri.to_s, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT, allow_redirections: :all)
             raise "Invalid content-type" unless io.content_type.match(/text\/html/i)
 
             # Additional information
@@ -110,7 +136,7 @@ module IsTheInternet
               available: true
             )
           rescue => err # OpenURI::HTTPError => err
-            @web_page.update_attribute(available: false)
+            @web_page.update_attribute(:available, false)
             raise err
           end
 
@@ -124,6 +150,12 @@ module IsTheInternet
       def tmp_filename
         "#{APP_ROOT}/tmp/#{web_page.id}.png"
       end
+
+      # Process to RGB color (255)
+      def rgb(i=0)
+        (@q18 || i > 255 ? ((255*i)/65535) : i).round
+      end
+      
 
       # -----------------------------------------------------------------------
 
@@ -218,12 +250,17 @@ module IsTheInternet
           } rescue nil
         }.reject(&:blank?)
 
+        # Check if page links should be followed
         follow = driver.find_element(xpath: "//meta[@name='robots']").attribute('content') rescue 'index,follow'
-        driver.find_elements(tag_name: 'a').each{|e| 
-          href = e.attribute('href') rescue nil
-          next if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
-          push_to_queue(href)
-        } unless follow.match(/nofollow/i)
+        unless follow.match(/nofollow/i)
+          driver.find_elements(tag_name: 'a').map{|e| 
+            href = e.attribute('href') rescue nil
+            href = nil if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
+            href
+          }.reject(&:blank?).compact.uniq.each{|v|
+            push_to_queue(v)
+          }
+        end
 
         raise "Unable to parse." unless web_page.step!(:parse)
         _debug("...done!", 1, [web_page])
@@ -246,7 +283,7 @@ module IsTheInternet
       # Capture the URL and run through the steps
       def capture!
         begin
-          _debug("Capturing #{uri}", 0, [web_page])
+          _debug("Capturing #{uri.to_s}", 0, [web_page])
 
           if !FORCE_ALL_CAPTURE && web_page.step?(:complete) && @force_process.blank?
             _debug("Previously completed!", 1, [web_page])
@@ -259,7 +296,7 @@ module IsTheInternet
 
             # Go through each step
             WebPage::STEPS.each do |v|
-              next if !FORCE_ALL_CAPTURE && web_page.step?(v) && !@force_process.include?(v)
+              # next if !FORCE_ALL_CAPTURE && web_page.step?(v) && !@force_process.include?(:all) && !@force_process.include?(v)
 
               n = "capture_#{v}"
               if respond_to?(n)
@@ -283,13 +320,6 @@ module IsTheInternet
         end
 
       end
-
-      protected
-
-        def rgb(i=0)
-          (@q18 || i > 255 ? ((255*i)/65535) : i).round
-        end
-
     end
   end
 end
