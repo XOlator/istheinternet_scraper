@@ -11,8 +11,8 @@ class AddHsvToColorPalettes < ActiveRecord::Migration
       c.save
     end
 
-    puts ColorPalette.hex_color.inspect
-    puts ColorPalette.hsl_hex_color.inspect
+    # puts ColorPalette.hex_color.inspect
+    # puts ColorPalette.hsl_hex_color.inspect
   end
 
   def down

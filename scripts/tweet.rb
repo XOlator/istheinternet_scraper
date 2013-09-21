@@ -64,7 +64,7 @@ begin
   end
 
 
-  ct, pixel_hex_color, dom_hex_color, hsl_hex_color, color_name = ColorPalette.count, ColorPalette.pixel_hex_color, ColorPalette.dominant_hex_color, ColorPalette.hsl_hex_color, ''
+  ct, pixel_hex_color, dom_hex_color, hsl_hex_color, color_name = ColorPalette.count, ColorPalette.pixel_hex_color, ColorPalette.dominant_hex_color, nil, ''
   str = "After #{ct} results, the average color of the Internet is ##{pixel_hex_color}. (Dominant average: ##{dom_hex_color}.)"
   # HSL average: ##{hsl_hex_color})"
   # (#{color_name})."
