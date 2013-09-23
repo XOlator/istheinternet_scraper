@@ -241,7 +241,7 @@ module IsTheInternet
         unless follow.match(/nofollow/i) 
           urls = []
           page.css('a[href]').each do |h|
-            href = h.attributes['href']
+            href = h.attributes['href'].to_s rescue nil
             next if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
             urls << href
           end
