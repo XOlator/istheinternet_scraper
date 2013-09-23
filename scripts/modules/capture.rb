@@ -1,4 +1,5 @@
 require "selenium-webdriver"
+require "nokogiri"
 
 module IsTheInternet
   module Page
@@ -226,31 +227,25 @@ module IsTheInternet
 
       # Parse the current page for additional links to add into the queue
       def capture_parse
-        web_page.title = driver.title
+        # Just get the html from S3
+        # src = File.join(APP_ROOT, web_page.html_page.url(:original))
+        # src ||= web_page.html_page.url(:original)
+        # html = open(url, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT).read
+        html = StringIO.new(driver.page_source).read
 
-        web_page.meta_tags = driver.find_elements(tag_name: 'meta').map{|e|
-          driver.execute_script("return arguments[0].attributes;", e).map{|v|
-            begin
-              t = {}; t[ v['name'] ] = v['value']; t
-            rescue
-              nil
-            end
-          } rescue nil
-        }.compact.each{|k,v|
-          next if v.blank?
-          follow = v['content'] if v['name'] == 'robots'
-        }
+        page = Nokogiri::HTML(html)
+        web_page.title = page.css('title').to_s
+        web_page.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
 
-        follow ||= 'index,follow'
-
-        unless follow.match(/nofollow/i)
-          urls = driver.find_elements(tag_name: 'a').map{|e| 
-            href = e.attribute('href') rescue nil
-            href = nil if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
-            href
-          }.compact.uniq
-
-          push_to_queue(urls)
+        follow = page.css('meta[name="robots"]')[0].attributes['content'].to_s rescue 'index,follow'
+        unless follow.match(/nofollow/i) 
+          urls = []
+          page.css('a[href]').each do |h|
+            href = h.attributes['href']
+            next if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
+            urls << href
+          end
+          push_to_queue(urls.compact.uniq)
         end
 
         raise "Unable to parse." unless web_page.step!(:parse)
