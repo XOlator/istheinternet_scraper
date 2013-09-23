@@ -143,7 +143,11 @@ module IsTheInternet
       def rgb(i=0)
         (@q18 || i > 255 ? ((255*i)/65535) : i).round
       end
-      
+
+      def read_page_html
+        open(uri.to_s, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT)
+      end
+
 
       # -----------------------------------------------------------------------
 
@@ -159,11 +163,18 @@ module IsTheInternet
 
       # Capture and save screenshot
       def capture_screenshot
-        driver.save_screenshot(tmp_filename)
-        web_page.screenshot = open(tmp_filename)
-
-        raise "Unable to screenshot." unless web_page.step!(:screenshot)
-        _debug("...done!", 1, [web_page])
+        begin
+          driver.manage.window.resize_to(1280, 800)
+          driver.navigate.to(web_page.base_uri)
+          driver.save_screenshot(tmp_filename)
+          web_page.screenshot = open(tmp_filename)
+          raise "Unable to screenshot." unless web_page.step!(:screenshot)
+          _debug("...done!", 1, [web_page])
+        rescue => err
+          raise err
+        ensure
+          stop_driver rescue nil
+        end
       end
 
 
@@ -215,9 +226,10 @@ module IsTheInternet
 
       # Scrape the current web page
       def capture_scrape
-        io = StringIO.new(driver.page_source)
-        io.class_eval { attr_accessor :original_filename }
+        io = read_page_html
+        io.class_eval { attr_accessor :original_filename, :content_type }
         io.original_filename = [File.basename(web_page.filename), "html"].join('.')
+        io.content_type = 'text/html'
         web_page.html_page = io
 
         raise "Unable to scrape." unless web_page.step!(:scrape)
@@ -227,13 +239,9 @@ module IsTheInternet
 
       # Parse the current page for additional links to add into the queue
       def capture_parse
-        # Just get the html from S3
-        # src = File.join(APP_ROOT, web_page.html_page.url(:original))
-        # src ||= web_page.html_page.url(:original)
-        # html = open(url, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT).read
-        html = StringIO.new(driver.page_source).read
+        io = read_page_html
+        page = Nokogiri::HTML(io)
 
-        page = Nokogiri::HTML(html)
         web_page.title = page.css('title').to_s
         web_page.meta_tags = page.css('meta').map{|m| t = {}; m.attributes.each{|k,v| t[k] = v.to_s}; t }
 
@@ -253,16 +261,11 @@ module IsTheInternet
       end
 
       # Initially open the web page in WebDriver
-      def open_web_page
+      def verify_web_page
         raise "URL is invalid: #{@url}" if uri.blank?
         raise "Web Site is invalid: #{@url}" if web_site.blank? || web_site.new_record?
         raise "Web Page is invalid: #{@url}" if web_page.blank? || web_page.new_record?
-
-        _debug("Opening", 1, [web_page])
-        driver.manage.window.resize_to(1280, 800)
-        driver.navigate.to(web_page.base_uri)
       end
-
 
       # -----------------------------------------------------------------------
 
@@ -277,8 +280,8 @@ module IsTheInternet
           end
 
           Timeout::timeout(120) do # 120 seconds
-            # Open up the web page, ensure if valid
-            open_web_page
+            # Ensure if valid web page
+            verify_web_page
 
             # Go through each step
             WebPage::STEPS.each do |v|
