@@ -3,16 +3,6 @@ def camelize(str)
   str.split('_').map {|w| w.capitalize}.join
 end
 
-def time_since_overall; time_since(TIME_START); end
-def time_since(start=nil)
-  @_time_since ||= TIME_START
-  start ||= @_time_since
-  @_time_since = Time.now
-
-  "#{Time.now - start} seconds"
-end
-
-
 # TEXT FORMATTING
 def _heading(str)
   return unless defined?(DEBUG) && DEBUG
@@ -37,7 +27,7 @@ def _divider(str='-', t=false, b=false)
 end
 
 def _debug(msg, spaces=0, obj=[])
-  # return unless defined?(DEBUG) && DEBUG
+  return unless defined?(DEBUG) && DEBUG
   str = [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
   str << msg 
   puts "[#{Time.now.to_s(:db)}] #{'   ' * spaces}#{str.join(' ')}"
@@ -57,3 +47,8 @@ def _error(msg, spaces=0, obj=[])
 
   puts x.join("\n")
 end
+
+
+# TIME OUTPUT
+def _t; @timestop = Time.now.to_f; end
+def _tt; puts "(#{"%.2f" % (Time.now.to_f - @timestop)} sec)"; end

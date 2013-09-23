@@ -10,6 +10,7 @@ gem 'rake',                     '10.1.0'
 gem 'mysql2',                   '0.3.13',     :require => false
 gem 'activerecord',             '3.2.14'
 gem 'rmagick',                  '2.13.2'
+gem 'ruby-prof',                '0.13.0'
 gem 'crack',                    '0.4.1'
 gem 'json',                     '1.8.0'
 gem 'oj',                       '2.1.4'
@@ -18,7 +19,10 @@ gem 'friendly_id',              '4.0.10.1'
 gem 'addressable',              '2.3.5'
 # gem 'pony',                     '1.4'
 gem 'color',                    '1.4.2'
+
+# Queue
 gem 'sidekiq',                  '2.14.1'
+gem 'sidekiq-middleware',       '0.1.4'
 
 # Screenshot processing
 gem 'selenium-webdriver',       '2.35.1',    :require => false

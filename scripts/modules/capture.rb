@@ -6,18 +6,10 @@ module IsTheInternet
 
       include Sidekiq::Worker
 
+      sidekiq_options({unique: :all, expiration: 1296000}) # 2 week expiration!
+
       # FORCE_ALL_CAPTURE = true #tmp
       FORCE_ALL_CAPTURE ||= false
-
-      # def initialize(url=nil,force=[])
-      #   puts "URL: #{url}"
-      #   @url = url
-      #   @force_process = force || []
-      # 
-      #   capture!
-      # 
-      #   @_error ? @_error : web_page
-      # end
 
       def perform(url=nil,force=[])
         puts "URL: #{url}"
@@ -41,15 +33,15 @@ module IsTheInternet
           end
 
           # Is page in queue to process?
-          Sidekiq::Queue.new.each do |job|
-            if job.klass == 'IsTheInternet::Page::Capture' && job.args[0] == u.to_s
-              _debug("Already in queue: #{u}", 2, [web_page])
-              return
-            end
-          end
+          # Sidekiq::Queue.new.each do |job|
+          #   if job.klass == 'IsTheInternet::Page::Capture' && job.args[0] == u.to_s
+          #     _debug("Already in queue: #{u}", 2, [web_page])
+          #     return
+          #   end
+          # end
 
           # Push to queue
-          Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => false, 'args' => [u.to_s])
+          Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
           _debug("Added to queue: #{u}", 2, [web_page])
 
         rescue => err
@@ -57,6 +49,7 @@ module IsTheInternet
           nil # Just skip if an error occurs
         end
       end
+
 
     protected
 

@@ -10,7 +10,7 @@
 # START IT UP...
 APP_MODE = 'scraper'
 APP_ROOT = File.expand_path('.', File.dirname(__FILE__))
-DEBUG = true
+DEBUG = false
 TIME_START = Time.now
 
 require "rubygems"
@@ -27,10 +27,9 @@ Sidekiq.configure_server do |config|
   config.redis = { :namespace => 'whatcolor', :url => 'redis://localhost:6379/1' }
 end
 
-
-
 require "#{APP_ROOT}/config.rb"
 Dir.glob("#{APP_ROOT}/scripts/modules/*.rb").each{|r| require r}
+
 
 # Add into Sidekiq Queue
 def queue(url,force=[])
