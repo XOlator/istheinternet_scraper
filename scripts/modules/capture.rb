@@ -22,31 +22,25 @@ module IsTheInternet
       end
 
       # Push a URL into the queue if not previously scraped
-      def push_to_queue(href)
-        begin
-          u = Addressable::URI.parse(href)
+      def push_to_queue(urls=[])
+        urls = [urls].flatten.compact
+        return if urls.blank?
 
-          # Has web page been processed before?
-          if WebPage.where('LOWER(url) = ?', u.to_s.downcase).complete?.count > 0
-            _debug("Already processed: #{u}", 2, [web_page])
-            return
+        WebPage.where("LOWER(url) IN(?)", urls.map{|u| u.downcase}).all.each do |u|
+          _debug("Already processed: #{u.url}", 2, [web_page])
+          urls.delete(u.url)
+        end
+
+        urls.each do |href|
+          begin
+            u = Addressable::URI.parse(href)
+            Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
+            _debug("Added to queue: #{u}", 2, [web_page])
+
+          rescue => err
+            _error("Error queuing #{href} => #{err}", 1, [web_page])
+            nil # Just skip if an error occurs
           end
-
-          # Is page in queue to process?
-          # Sidekiq::Queue.new.each do |job|
-          #   if job.klass == 'IsTheInternet::Page::Capture' && job.args[0] == u.to_s
-          #     _debug("Already in queue: #{u}", 2, [web_page])
-          #     return
-          #   end
-          # end
-
-          # Push to queue
-          Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
-          _debug("Added to queue: #{u}", 2, [web_page])
-
-        rescue => err
-          _error("Error queuing #{href} => #{err}", 1, [web_page])
-          nil # Just skip if an error occurs
         end
       end
 
@@ -233,7 +227,7 @@ module IsTheInternet
       # Parse the current page for additional links to add into the queue
       def capture_parse
         web_page.title = driver.title
-        ttx = Time.now.to_f
+
         web_page.meta_tags = driver.find_elements(tag_name: 'meta').map{|e|
           driver.execute_script("return arguments[0].attributes;", e).map{|v|
             begin
@@ -246,22 +240,18 @@ module IsTheInternet
           next if v.blank?
           follow = v['content'] if v['name'] == 'robots'
         }
-        puts web_page.meta_tags.inspect
-        _log("Parse meta tags: #{"%.2f" % (Time.now.to_f - ttx) rescue 0.00} sec")
 
         follow ||= 'index,follow'
 
-        ttx = Time.now.to_f
         unless follow.match(/nofollow/i)
-          driver.find_elements(tag_name: 'a').map{|e| 
+          urls = driver.find_elements(tag_name: 'a').map{|e| 
             href = e.attribute('href') rescue nil
             href = nil if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
             href
-          }.compact.uniq.each{|v|
-            push_to_queue(v)
-          }
+          }.compact.uniq
+
+          push_to_queue(urls)
         end
-        _log("Parse links: #{"%.2f" % (Time.now.to_f - ttx) rescue 0.00} sec")
 
         raise "Unable to parse." unless web_page.step!(:parse)
         _debug("...done!", 1, [web_page])
