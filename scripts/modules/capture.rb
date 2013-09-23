@@ -28,7 +28,7 @@ module IsTheInternet
 
           # Has web page been processed before?
           if WebPage.where('LOWER(url) = ?', u.to_s.downcase).complete?.count > 0
-            _debug("Already processed: #{url}", 2, [web_page])
+            _debug("Already processed: #{u}", 2, [web_page])
             return
           end
 
@@ -45,7 +45,7 @@ module IsTheInternet
           _debug("Added to queue: #{u}", 2, [web_page])
 
         rescue => err
-          # _error("Error with #{href} => #{err}", 1, [web_page])
+          _error("Error queuing #{href} => #{err}", 1, [web_page])
           nil # Just skip if an error occurs
         end
       end
@@ -233,6 +233,7 @@ module IsTheInternet
       # Parse the current page for additional links to add into the queue
       def capture_parse
         web_page.title = driver.title
+        ttx = Time.now.to_f
         web_page.meta_tags = driver.find_elements(tag_name: 'meta').map{|e|
           driver.execute_script("return arguments[0].attributes;", e).map{|v|
             begin
@@ -241,19 +242,26 @@ module IsTheInternet
               nil
             end
           } rescue nil
-        }.reject(&:blank?)
+        }.compact.each{|k,v|
+          next if v.blank?
+          follow = v['content'] if v['name'] == 'robots'
+        }
+        puts web_page.meta_tags.inspect
+        _log("Parse meta tags: #{"%.2f" % (Time.now.to_f - ttx) rescue 0.00} sec")
 
-        # Check if page links should be followed
-        follow = driver.find_element(xpath: "//meta[@name='robots']").attribute('content') rescue 'index,follow'
+        follow ||= 'index,follow'
+
+        ttx = Time.now.to_f
         unless follow.match(/nofollow/i)
           driver.find_elements(tag_name: 'a').map{|e| 
             href = e.attribute('href') rescue nil
             href = nil if href.blank? || !href.match(/^http(s)?\:\/\//i) || href.match(/(jpg|jpeg|pdf|gif|png|tif|tiff|exe|zip|js|css|txt|json|doc|docx|xls|xlsx|csv|mov|mp3|tar|eps|ai|xml)$/i)
             href
-          }.reject(&:blank?).compact.uniq.each{|v|
+          }.compact.uniq.each{|v|
             push_to_queue(v)
           }
         end
+        _log("Parse links: #{"%.2f" % (Time.now.to_f - ttx) rescue 0.00} sec")
 
         raise "Unable to parse." unless web_page.step!(:parse)
         _debug("...done!", 1, [web_page])
@@ -289,12 +297,14 @@ module IsTheInternet
 
             # Go through each step
             WebPage::STEPS.each do |v|
-              # next if !FORCE_ALL_CAPTURE && web_page.step?(v) && !@force_process.include?(:all) && !@force_process.include?(v)
+              next if !FORCE_ALL_CAPTURE && web_page.step?(v) && !@force_process.include?(:all) && !@force_process.include?(v)
 
               n = "capture_#{v}"
               if respond_to?(n)
-                _debug(v.to_s.capitalize, 1, [web_page])
+                _t
+                _log(v.to_s.capitalize, 1, [web_page])
                 send(n)
+                _log("#{v.to_s.capitalize} #{_te}", 1, [web_page])
               end
             end
           end

@@ -33,6 +33,13 @@ def _debug(msg, spaces=0, obj=[])
   puts "[#{Time.now.to_s(:db)}] #{'   ' * spaces}#{str.join(' ')}"
 end
 
+def _log(msg, spaces=0, obj=[])
+  # return unless defined?(DEBUG) && DEBUG
+  str = [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
+  str << msg 
+  puts "[#{Time.now.to_s(:db)}] #{'   ' * spaces}#{str.join(' ')}"
+end
+
 def _error(msg, spaces=0, obj=[])
   # return unless defined?(DEBUG) && DEBUG
   x, str = [], [obj].flatten.map{|v| v.present? ? "#{v.respond_to?(:id) && v.id.present? ? "<#{v.class.name} ##{v.id}>" : v.to_s}" : nil }.compact
@@ -51,4 +58,5 @@ end
 
 # TIME OUTPUT
 def _t; @timestop = Time.now.to_f; end
-def _tt; puts "(#{"%.2f" % (Time.now.to_f - @timestop)} sec)"; end
+def _te; "(#{"%.2f" % (Time.now.to_f - @timestop) rescue 0.00} sec)"; end
+def _tt; puts _te; end
