@@ -17,6 +17,11 @@ require "rubygems"
 require "bundler"
 Bundler.require
 
+require "#{APP_ROOT}/config.rb"
+Dir.glob("#{APP_ROOT}/scripts/modules/*.rb").each{|r| require r}
+
+AWS.eager_autoload! # recommend sidekiq threadsafe
+
 require 'sidekiq'
 
 Sidekiq.configure_client do |config|
@@ -27,8 +32,16 @@ Sidekiq.configure_server do |config|
   config.redis = { :namespace => 'whatcolor', :url => 'redis://localhost:6379/1' }
 end
 
-require "#{APP_ROOT}/config.rb"
-Dir.glob("#{APP_ROOT}/scripts/modules/*.rb").each{|r| require r}
+
+trap(0) do
+  ActiveRecord::Base.connection.close rescue nil
+  _debug('...exiting1!')
+end
+
+trap(2) do
+  ActiveRecord::Base.connection.close rescue nil
+  _debug('...exiting2!')
+end
 
 
 # Add into Sidekiq Queue

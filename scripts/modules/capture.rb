@@ -206,7 +206,7 @@ module IsTheInternet
 
         # --- Pixel ---
         img = Magick::ImageList.new
-        pixel_img = web_page.screenshot.url(:pixel) if USE_S3 # TODO : better check
+        pixel_img = web_page.screenshot.url(:pixel) if USE_S3
         pixel_img ||= File.join(APP_ROOT,web_page.screenshot.path(:pixel))
         img.from_blob(open(pixel_img, read_timeout: 5, "User-Agent" => CRAWLER_USER_AGENT).read)
         img.delete_profile('*')
