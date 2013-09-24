@@ -7,7 +7,7 @@ module IsTheInternet
 
       include Sidekiq::Worker
 
-      sidekiq_options({unique: :all, expiration: 1296000}) # 2 week expiration!
+      sidekiq_options({retry: 2, unique: :all, expiration: 1296000}) # 2 week expiration!
 
       # FORCE_ALL_CAPTURE = true #tmp
       FORCE_ALL_CAPTURE ||= false
@@ -27,15 +27,16 @@ module IsTheInternet
         urls = [urls].flatten.compact
         return if urls.blank?
 
-        WebPage.where("LOWER(url) IN(?)", urls.map{|u| u.downcase}).all.each do |u|
-          _debug("Already processed: #{u.url}", 2, [web_page])
-          urls.delete(u.url)
-        end
+        # WebPage.where("LOWER(url) IN(?)", urls.map{|u| u.downcase}).all.each do |u|
+        #   _debug("Already processed: #{u.url}", 2, [web_page])
+        #   urls.delete(u.url)
+        # end
 
         urls.each do |href|
           begin
             u = Addressable::URI.parse(href)
-            Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
+            IsTheInternet::Page::Capture.perform_async(u.to_s)
+            # Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
             _debug("Added to queue: #{u}", 2, [web_page])
 
           rescue => err
@@ -145,7 +146,7 @@ module IsTheInternet
       end
 
       def read_page_html
-        open(uri.to_s, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT)
+        @html ||= open(uri.to_s, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT)
       end
 
 
@@ -255,7 +256,6 @@ module IsTheInternet
           end
           push_to_queue(urls.compact.uniq)
         end
-
         raise "Unable to parse." unless web_page.step!(:parse)
         _debug("...done!", 1, [web_page])
       end
