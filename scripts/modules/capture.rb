@@ -302,6 +302,7 @@ module IsTheInternet
           error!(err)
 
         rescue => err
+          ActiveRecord::Base.connection.reconnect! if err.to_s.match(/mysql/i)
           _error(err, 1)
           error!(err)
 
