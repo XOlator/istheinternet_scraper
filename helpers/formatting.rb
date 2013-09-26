@@ -1,9 +1,17 @@
 # MISCELLANEOUS FUNCTIONS
+def number_to_delimiter(n=0)
+  parts = n.to_s.split('.')
+  parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
+  parts.join('.')
+end
+
 def camelize(str)
   str.split('_').map {|w| w.capitalize}.join
 end
 
-# TEXT FORMATTING
+
+
+# LOGGIN OUTPUT
 def _heading(str)
   return unless defined?(DEBUG) && DEBUG
   puts "\n\n\n"
