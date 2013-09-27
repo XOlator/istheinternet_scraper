@@ -27,15 +27,12 @@ class ColorPalette < ActiveRecord::Base
 
   # --- Methods ---------------------------------------------------------------
 
-  def self.color_avg(v); where("#{v} != '' AND #{v} IS NOT NULL").average(v); end
+  def self.color_avg(v); where("#{v} != '' AND #{v} IS NOT NULL").average(v).to_f; end
 
-  def self.pixel_hex_color
-    ("%02x%02x%02x" % [color_avg(:pixel_color_red), color_avg(:pixel_color_green), color_avg(:pixel_color_blue)]).upcase
-  end
-
-  def self.dominant_hex_color
-    ("%02x%02x%02x" % [color_avg(:dominant_color_red), color_avg(:dominant_color_green), color_avg(:dominant_color_blue)]).upcase
-  end
+  def self.pixel_hex_color; ("%02x%02x%02x" % pixel_rgb).upcase; end
+  def self.pixel_rgb; [color_avg(:pixel_color_red), color_avg(:pixel_color_green), color_avg(:pixel_color_blue)]; end
+  def self.dominant_hex_color; ("%02x%02x%02x" % dominant_rgb).upcase; end
+  def self.dominant_rgb; [color_avg(:dominant_color_red), color_avg(:dominant_color_green), color_avg(:dominant_color_blue)]; end
 
   # def self.hsl_hex_color
   #   h,s,l = color_avg(:pixel_color_hue), color_avg(:pixel_color_saturation), color_avg(:pixel_color_value)

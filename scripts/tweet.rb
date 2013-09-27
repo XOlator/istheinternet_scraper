@@ -69,10 +69,25 @@ begin
   # HSL average: ##{hsl_hex_color})"
   # (#{color_name})."
   puts str
+
+  r,g,b = ColorPalette.pixel_rgb
+
+  ip = Magick::Image.new(1000,1000) { self.background_color = Magick::Pixel.new(r,g,b) }
+  fp = Tempfile.new(["#{pixel_hex_color}_profile",'.png'])
+  ip.write(fp.path)
+
+  ib = Magick::Image.new(1252,626) { self.background_color = Magick::Pixel.new(r,g,b) }
+  fb = Tempfile.new(["#{pixel_hex_color}_banner",'.png'])
+  ib.write(fb.path)
+
   client.update_profile_colors(profile_background_color: pixel_hex_color)
+  client.update_profile_image(fp)
+  client.update_profile_banner(fb)
   client.update(str)
+
 rescue => err
   _error(err)
+
 ensure
   ActiveRecord::Base.connection.close
 end
