@@ -35,7 +35,7 @@ CRAWLER_USER_AGENT = "WhatColor.IsTheInter.net/#{CRAWLER_VERSION} (http://whatco
 
 
 # REQUIRE MODULES/GEMS
-%w{yaml active_record twitter geocoder geocoder/models/active_record}.each{|r| require r}
+%w{yaml active_record twitter RMagick geocoder geocoder/models/active_record}.each{|r| require r}
 
 # INITIALIZERS
 Dir.glob("#{APP_ROOT}/initializers/*.rb").each{|r| require r}
@@ -70,7 +70,7 @@ begin
   # (#{color_name})."
   puts str
 
-  r,g,b = ColorPalette.pixel_rgb
+  r,g,b = ColorPalette.pixel_rgb.map{|v| Magick::QuantumDepth > 8 ? ((v * Magick::QuantumRange) / 255.to_f) : v}
 
   ip = Magick::Image.new(1000,1000) { self.background_color = Magick::Pixel.new(r,g,b) }
   fp = Tempfile.new(["#{pixel_hex_color}_profile",'.png'])
