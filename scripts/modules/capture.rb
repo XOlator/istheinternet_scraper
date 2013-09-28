@@ -25,9 +25,8 @@ module IsTheInternet
         @url, @force_process = url, [ force || [] ].flatten
 
         capture!
-        raise @_error if @_error.present?
-
-        web_page
+        raise @_error if @_error.present? # Let sidekiq know something happened
+        true # Otherwise good
       end
 
       # Push a URL into the queue if not previously scraped
@@ -279,12 +278,12 @@ module IsTheInternet
       # Capture the URL and run through the steps
       def capture!
         begin
-          _debug("Capturing #{uri.to_s}", 0, [web_page])
-
           if blacklisted?
-            _debug("Blacklisted", 1, [web_page])
+            _debug("Blacklisted: #{uri}", 0)
             return
           end
+
+          _debug("Capturing #{uri.to_s}", 0, [web_page])
 
           if !FORCE_ALL_CAPTURE && web_page.step?(:complete) && @force_process.blank?
             _debug("Previously completed!", 1, [web_page])
