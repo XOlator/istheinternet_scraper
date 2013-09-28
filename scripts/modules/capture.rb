@@ -24,9 +24,13 @@ module IsTheInternet
         puts "URL: #{url}"
         @url, @force_process = url, [ force || [] ].flatten
 
-        capture!
-        raise @_error if @_error.present? # Let sidekiq know something happened
+        unless blacklisted?
+          capture!
+        else
+          _debug("Blacklisted: #{uri}", 0)
+        end
 
+        raise @_error if @_error.present? # Let sidekiq know something happened
         uri.to_s
       end
 
@@ -279,11 +283,6 @@ module IsTheInternet
       # Capture the URL and run through the steps
       def capture!
         begin
-          if blacklisted?
-            _debug("Blacklisted: #{uri}", 0)
-            return
-          end
-
           _debug("Capturing #{uri.to_s}", 0, [web_page])
 
           if !FORCE_ALL_CAPTURE && web_page.step?(:complete) && @force_process.blank?
@@ -322,7 +321,6 @@ module IsTheInternet
           stop_driver rescue nil
           File.unlink(tmp_filename) rescue nil
         end
-
       end
     end
   end
