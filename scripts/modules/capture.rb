@@ -7,19 +7,27 @@ module IsTheInternet
 
       include Sidekiq::Worker
 
-      sidekiq_options({retry: 2, unique: :all, expiration: 1296000}) # 2 week expiration!
+      sidekiq_options({retry: 3, unique: :all, expiration: 1296000}) # 2 week expiration!
 
-      # FORCE_ALL_CAPTURE = true #tmp
+      sidekiq_retry_in do |count|
+        60 * (count + 1)
+      end
+
+      sidekiq_retries_exhausted do |msg|
+        _error("REMOVING: #{msg['args'][0]}")
+      end
+
+
       FORCE_ALL_CAPTURE ||= false
 
       def perform(url=nil,force=[])
         puts "URL: #{url}"
-        @url = url
-        @force_process = [ force || [] ].flatten
+        @url, @force_process = url, [ force || [] ].flatten
 
         capture!
+        raise @_error if @_error.present?
 
-        @_error ? @_error : web_page
+        web_page
       end
 
       # Push a URL into the queue if not previously scraped
@@ -27,16 +35,10 @@ module IsTheInternet
         urls = [urls].flatten.compact
         return if urls.blank?
 
-        # WebPage.where("LOWER(url) IN(?)", urls.map{|u| u.downcase}).all.each do |u|
-        #   _debug("Already processed: #{u.url}", 2, [web_page])
-        #   urls.delete(u.url)
-        # end
-
         urls.each do |href|
           begin
             u = Addressable::URI.parse(href)
             IsTheInternet::Page::Capture.perform_async(u.to_s)
-            # Sidekiq::Client.push('class' => IsTheInternet::Page::Capture, 'retry' => 2, 'args' => [u.to_s])
             _debug("Added to queue: #{u}", 2, [web_page])
 
           rescue => err
@@ -67,6 +69,11 @@ module IsTheInternet
       # Parse URL
       def uri
         @uri ||= Addressable::URI.parse(@url) rescue false
+      end
+
+      # Check blacklist
+      def blacklisted?
+        IsTheInternet::Page::Blacklist.match?(uri)
       end
 
       # Parse URL host
@@ -126,7 +133,7 @@ module IsTheInternet
             )
           rescue => err # OpenURI::HTTPError => err
             @web_page.update_attribute(:available, false)
-            raise err
+            raise err.to_s
           end
 
           @web_page.save
@@ -273,6 +280,11 @@ module IsTheInternet
       def capture!
         begin
           _debug("Capturing #{uri.to_s}", 0, [web_page])
+
+          if blacklisted?
+            _debug("Blacklisted", 1, [web_page])
+            return
+          end
 
           if !FORCE_ALL_CAPTURE && web_page.step?(:complete) && @force_process.blank?
             _debug("Previously completed!", 1, [web_page])

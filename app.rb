@@ -33,18 +33,20 @@ Sidekiq.configure_server do |config|
 end
 
 
-trap(0) do
-  ActiveRecord::Base.connection.close rescue nil
-  _debug('...exiting1!')
+%w(TERM KILL QUIT ABRT STOP).each do |k|
+  Signal.trap(k) do
+    ActiveRecord::Base.connection.close rescue nil
+    _debug("...exiting (#{k})!")
+  end
 end
 
-trap(2) do
-  ActiveRecord::Base.connection.close rescue nil
-  _debug('...exiting2!')
-end
 
 
 # Add into Sidekiq Queue
 def queue(url,force=[])
   IsTheInternet::Page::Capture.perform_async(url,force)
+end
+
+def add_to_blacklist(url)
+  IsTheInternet::Page::Blacklist.add(url)
 end
