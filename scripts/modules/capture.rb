@@ -26,7 +26,8 @@ module IsTheInternet
 
         capture!
         raise @_error if @_error.present? # Let sidekiq know something happened
-        true # Otherwise good
+
+        uri.to_s
       end
 
       # Push a URL into the queue if not previously scraped
