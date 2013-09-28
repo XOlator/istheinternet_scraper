@@ -21,8 +21,9 @@ module IsTheInternet
         begin
           url = Addressable::URI.parse(url) unless url.class == Addressable::URI
           url.host.downcase.gsub(/^www\./, '')
-        rescue
-          nil
+        rescue => err
+          _debug("Blacklist: Error: #{url} #{err}")
+          false
         end
       end
 
