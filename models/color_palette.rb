@@ -24,6 +24,8 @@ class ColorPalette < ActiveRecord::Base
 
   # --- Scopes ----------------------------------------------------------------
 
+  scope :has_pixel_color, where("(pixel_color_red != '' AND pixel_color_red IS NOT NULL) AND (pixel_color_green != '' AND pixel_color_green IS NOT NULL) AND (pixel_color_blue != '' AND pixel_color_blue IS NOT NULL)")
+
 
   # --- Methods ---------------------------------------------------------------
 
@@ -41,6 +43,10 @@ class ColorPalette < ActiveRecord::Base
   #   # rgb = Color::HSL.from_fraction(h,s,l).to_rgb
   #   # rgb.html.gsub(/\#/, '').upcase
   # end
+
+  def pixel_hex_color
+    ("%02x%02x%02x" % [self.pixel_color_red, self.pixel_color_green, self.pixel_color_blue]).upcase
+  end
 
   def convert_rgb_to_hsl
     begin
