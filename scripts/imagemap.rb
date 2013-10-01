@@ -35,7 +35,7 @@ CRAWLER_USER_AGENT = "WhatColor.IsTheInter.net/#{CRAWLER_VERSION} (http://whatco
 
 
 # REQUIRE MODULES/GEMS
-%w{yaml active_record geocoder geocoder/models/active_record}.each{|r| require r}
+%w{yaml active_record geocoder RMagick geocoder/models/active_record}.each{|r| require r}
 
 # INITIALIZERS
 Dir.glob("#{APP_ROOT}/initializers/*.rb").each{|r| require r}
@@ -55,7 +55,8 @@ begin
   Dir.glob("#{APP_ROOT}/helpers/*.rb").each{|r| require r}
 
   # How much to scale the image (how large of an area should each palette be)
-  scale = 10
+  scale = ENV['COLORMAP_SCALE'].to_i rescue 1
+  scale = 1 if scale.blank?
 
   # Counts/Math
   ct, cts, maxct, i = ColorPalette.has_pixel_color.count, 0, 0, 0
@@ -66,7 +67,7 @@ begin
 
   img = Magick::Image.new(cts*scale,cts*scale) { self.background_color = 'white'}
 
-  ColorPalette.has_pixel_color.each do |c|
+  ColorPalette.has_pixel_color.order('RAND()').each do |c|
     next if c.blank?
     gc = Magick::Draw.new
     x1,y1 = (i % cts)*scale, (i/cts.to_f).floor*scale
@@ -78,7 +79,7 @@ begin
     break if i >= maxct
   end
 
-  img.write(File.join(APP_ROOT, 'tmp', "colormap.png"))#_#{Time.now.to_i}.png"))
+  img.write(File.join(APP_ROOT, 'tmp', "colormap_#{Time.now.to_i}.png"))
 
 
 rescue => err
