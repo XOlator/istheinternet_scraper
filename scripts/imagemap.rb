@@ -65,6 +65,7 @@ begin
 
   _debug("Making image #{cts * scale}x#{cts * scale} (#{scale}x)")
 
+  fname = File.join(APP_ROOT, 'tmp', "colormap_#{Time.now.to_i}.png")
   img = Magick::Image.new(cts*scale,cts*scale) { self.background_color = 'white'}
 
   ColorPalette.has_pixel_color.order('RAND()').each do |c|
@@ -79,8 +80,9 @@ begin
     break if i >= maxct
   end
 
-  img.write(File.join(APP_ROOT, 'tmp', "colormap_#{Time.now.to_i}.png"))
+  img.write(fname)
 
+  puts "\n\nSaved! #{fname}\n\n"
 
 rescue => err
   _error(err)
