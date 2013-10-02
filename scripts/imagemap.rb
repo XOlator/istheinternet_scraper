@@ -67,8 +67,13 @@ begin
 
   img = Magick::Image.new(cts*scale,cts*scale) { self.background_color = 'white'}
 
-  ColorPalette.has_pixel_color.order('RAND()').each do |c|
+  obj = ColorPalette.has_pixel_color
+  # obj = obj.order('created_at DESC') #.order('RAND()')
+  obj = obj.joins(:web_page).order('web_pages.url ASC') #.order('pixel_color_red DESC')
+  obj = obj.limit(maxct)
+  obj.each do |c|
     next if c.blank?
+    # puts c.web_page.inspect; next
     gc = Magick::Draw.new
     x1,y1 = (i % cts)*scale, (i/cts.to_f).floor*scale
     x2,y2 = x1+scale, y1+scale
