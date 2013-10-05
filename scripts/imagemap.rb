@@ -70,13 +70,22 @@ begin
   fname = File.join(APP_ROOT, 'tmp', "colormap_#{Time.now.to_i}.png")
   img = Magick::Image.new(cts*scale,cts*scale) { self.background_color = 'white'}
 
+  # Begin imagemap query
   obj = ColorPalette.has_pixel_color
+
+  # Prevent new records from seeping in
+  obj = obj.where("#{ColorPalette::table_name}.id <= ?", ColorPalette.order('id desc').first.id) rescue nil
+
+  # Conditionals
   # obj = obj.order('created_at DESC') #.order('RAND()')
   obj = obj.joins(:web_page).order('web_pages.url ASC') #.order('pixel_color_red DESC')
 
 
+  # Loop, every row, then column
   (0..(cts-1)).each do |y|
+    _debug("Row: #{y*scale}", 1)
     pg = obj.limit(cts).offset(y*cts)
+
     pg.each_with_index do |c,x|
       gc = Magick::Draw.new
       x1,y1 = x*scale, y*scale
