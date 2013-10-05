@@ -7,6 +7,55 @@ require './config.rb'
 Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
 
 
+# namespace :storage do
+#   task :to_s3 do
+#     require 'aws/s3'
+#     s3_options = YAML.load_file(File.join(APP_ROOT, 's3.yml'))[APP_ENV].symbolize_keys
+#     bn = s3_options[:bucket]
+# 
+#     # Establish S3 connection
+#     s3_options.delete(:bucket_name)
+#     s3 = AWS::S3.new(s3_options)
+#     b = s3.buckets[bn]
+# 
+#     puts "HTML_PAGES\n\n"
+#     Dir.glob("#{APP_ROOT}/storage/web_pages/html_pages/*/*/*/*/*").each{|r| 
+#       begin
+#         u = r.gsub("#{APP_ROOT}/", '')
+#         if b.objects[u].exists?
+#           puts "Exists: #{u}"
+#           b.objects[u].acl = :public_read
+#           next
+#         end
+#         puts u
+#         obj = b.objects.create(u, '')
+#         raise "#{p}" unless obj.write(:file => r, :access => :public_read)
+#         obj.acl = :public_read
+#       rescue => e
+#         puts "> Error: #{e}"
+#       end
+#     }
+# 
+#     puts "\n\n\nSCREENSHOTS\n\n"
+#     Dir.glob("#{APP_ROOT}/storage/web_pages/screenshots/*/*/*/*").each{|r|
+#       begin
+#         u = r.gsub("#{APP_ROOT}/", '')
+#         if b.objects[u].exists?
+#           puts "Exists: #{u}"
+#           b.objects[u].acl = :public_read
+#           next
+#         end
+#         puts u
+#         obj = b.objects.create(u, '')
+#         raise "#{p}" unless obj.write(:file => r, :access => :public_read)
+#         obj.acl = :public_read
+#       rescue => e
+#         puts "> Error: #{e}"
+#       end
+#     }
+#   end
+# end
+
 namespace :db do
   # def create_database config
   #   options = {:charset => 'utf8', :collation => 'utf8_unicode_ci'}

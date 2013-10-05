@@ -54,12 +54,14 @@ begin
   Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
   Dir.glob("#{APP_ROOT}/helpers/*.rb").each{|r| require r}
 
+  _t
+
   # How much to scale the image (how large of an area should each palette be)
   scale = ENV['COLORMAP_SCALE'].to_i rescue 1
   scale = 1 if scale.blank?
 
   # Counts/Math
-  ct, cts, maxct, i = ColorPalette.has_pixel_color.count, 0, 0, 0
+  ct, cts, maxct = ColorPalette.has_pixel_color.count, 0, 0
   cts = Math.sqrt(ct).round
   maxct, maxctz = cts*cts, (cts*scale)*(cts*scale)
 
@@ -71,23 +73,23 @@ begin
   obj = ColorPalette.has_pixel_color
   # obj = obj.order('created_at DESC') #.order('RAND()')
   obj = obj.joins(:web_page).order('web_pages.url ASC') #.order('pixel_color_red DESC')
-  obj = obj.limit(maxct)
-  obj.each do |c|
-    next if c.blank?
-    # puts c.web_page.inspect; next
-    gc = Magick::Draw.new
-    x1,y1 = (i % cts)*scale, (i/cts.to_f).floor*scale
-    x2,y2 = x1+scale, y1+scale
-    gc.fill("#" << c.pixel_hex_color)
-    gc.polygon(x1,y1,x1,y2,x2,y2,x2,y1)
-    gc.draw(img)
-    i += 1
-    break if i >= maxct
+
+
+  (0..(cts-1)).each do |y|
+    pg = obj.limit(cts).offset(y*cts)
+    pg.each_with_index do |c,x|
+      gc = Magick::Draw.new
+      x1,y1 = x*scale, y*scale
+      x2,y2 = x1+scale, y1+scale
+      gc.fill("#" << c.pixel_hex_color)
+      gc.polygon(x1,y1,x1,y2,x2,y2,x2,y1)
+      gc.draw(img)
+    end
   end
 
   img.write(fname)
 
-  puts "\n\nSaved! #{fname}\n\n"
+  puts "\n\nSaved #{_te}\n\n> #{fname}\n\n"
 
 rescue => err
   _error(err)
