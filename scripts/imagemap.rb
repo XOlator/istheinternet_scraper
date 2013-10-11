@@ -58,7 +58,7 @@ begin
 
   # How much to scale the image (how large of an area should each palette be)
   scale = ENV['COLORMAP_SCALE'].to_i rescue 1
-  scale = 1 if scale.blank?
+  scale = 1 if scale.blank? || scale == 0
 
   # Counts/Math
   ct, cts, maxct = ColorPalette.has_pixel_color.count, 0, 0
@@ -74,7 +74,8 @@ begin
   obj = ColorPalette.has_pixel_color
 
   # Prevent new records from seeping in
-  obj = obj.where("#{ColorPalette::table_name}.id <= ?", ColorPalette.order('id desc').first.id) rescue nil
+  obj = obj.where("#{ColorPalette::table_name}.updated_at <= ?", Time.now) rescue nil
+  # obj = obj.where("#{ColorPalette::table_name}.id <= ?", ColorPalette.order('id desc').first.id) rescue nil
 
   # Conditionals
   # obj = obj.order('created_at DESC') #.order('RAND()')
@@ -87,6 +88,7 @@ begin
     pg = obj.limit(cts).offset(y*cts)
 
     pg.each_with_index do |c,x|
+#      _debug("#{c.id}: #{c.pixel_hex_color}", 2)
       gc = Magick::Draw.new
       x1,y1 = x*scale, y*scale
       x2,y2 = x1+scale, y1+scale
@@ -94,6 +96,8 @@ begin
       gc.polygon(x1,y1,x1,y2,x2,y2,x2,y1)
       gc.draw(img)
     end
+
+    _debug(_te, 2)
   end
 
   img.write(fname)
