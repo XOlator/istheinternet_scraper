@@ -9,9 +9,11 @@ Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
 
 namespace :counters do
   task :reset do
-    WebSite.all.each do |w|
-      WebSite.reset_counters(w.id, :web_pages)
-      w.update_attribute(:completed_web_pages_count, w.web_pages.complete?.count)
+    WebSite.find_each(:batch_size => 100, :start => 169) do |w|
+       WebSite.reset_counters(w.id, :web_pages)
+       w.update_attribute(:completed_web_pages_count, w.web_pages.where(:step_index => 5).count)
+       w.reload
+       puts "#{w.id}\t#{w.web_pages_count}\t#{w.completed_web_pages_count}\t#{w.host_url}"
     end
   end
 end
