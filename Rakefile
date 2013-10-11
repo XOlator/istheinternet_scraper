@@ -7,6 +7,15 @@ require './config.rb'
 Dir.glob("#{APP_ROOT}/models/*.rb").each{|r| require r}
 
 
+namespace :counters do
+  task :reset do
+    WebSite.all.each do |w|
+      WebSite.reset_counters(w.id, :web_pages)
+      w.update_attribute(:completed_web_pages_count, w.web_pages.complete?.count)
+    end
+  end
+end
+
 # namespace :storage do
 #   task :to_s3 do
 #     require 'aws/s3'

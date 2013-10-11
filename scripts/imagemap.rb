@@ -73,6 +73,7 @@ begin
   # Begin imagemap query
   obj = ColorPalette.has_pixel_color
 
+
   # Prevent new records from seeping in
   obj = obj.where("#{ColorPalette::table_name}.updated_at <= ?", Time.now) rescue nil
   # obj = obj.where("#{ColorPalette::table_name}.id <= ?", ColorPalette.order('id desc').first.id) rescue nil

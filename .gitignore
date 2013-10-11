@@ -13,3 +13,7 @@ twitter.yml
 s3.yml
 storage/
 system/
+nohup.log
+log
+images/
+seed.txt
