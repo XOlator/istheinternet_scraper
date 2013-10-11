@@ -2,6 +2,9 @@ class WebSite < ActiveRecord::Base
 
   # self.per_page = 50
 
+  MAX_PAGES_COUNT = 150
+
+
   # Nicer fetching by url name
   extend FriendlyId
   friendly_id :host_url
@@ -136,6 +139,7 @@ class WebSite < ActiveRecord::Base
     end
   end
 
+  def reached_max_pages?; (self.web_pages_count >= MAX_PAGES_COUNT); end
 
 protected
   

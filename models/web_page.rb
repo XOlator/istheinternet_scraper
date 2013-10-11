@@ -32,8 +32,10 @@ class WebPage < ActiveRecord::Base
 
   # --- Associations ----------------------------------------------------------
 
-  belongs_to :web_site
+  belongs_to :web_site, :counter_cache => :web_pages_count
   has_one :color_palette
+
+  before_save :update_counter_if_complete
 
   serialize :headers, Hash
 
@@ -80,5 +82,10 @@ class WebPage < ActiveRecord::Base
 
 protected
 
+  def update_counter_if_complete
+    if self.step == :complete && self.step_index_changed?
+      WebSite.increment_counter(:completed_web_pages_count, self.web_site_id)
+    end
+  end
 
 end

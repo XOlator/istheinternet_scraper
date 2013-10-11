@@ -276,6 +276,7 @@ module IsTheInternet
         raise "URL is invalid: #{@url}" if uri.blank?
         raise "Web Site is invalid: #{@url}" if web_site.blank? || web_site.new_record?
         raise "Web Page is invalid: #{@url}" if web_page.blank? || web_page.new_record?
+        raise "Max page count (#{WebSite::MAX_PAGES_COUNT}) reached for #{@url}" if web_site.reached_max_pages?
       end
 
       # -----------------------------------------------------------------------
