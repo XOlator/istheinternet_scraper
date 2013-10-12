@@ -105,10 +105,17 @@ module IsTheInternet
         return @web_site unless @web_site.blank?
         @web_site = WebSite.where('LOWER(host_url) = ?', uri_host.downcase).first rescue nil
         @web_site ||= WebSite.new(url: uri.to_s, host_url: uri_host)
+        @web_site.save if @web_site.new_record?
 
-        if @web_site.new_record?
-          # scrape robots
-          @web_site.save
+        # s.scrape_robots_txt! if s.rescrape_robots_txt?
+
+        # Get WHOIS
+        if !@web_site.new_record? && @web_site.rescrape_whois_record?
+          begin
+            @web_site.scrape_whois_record!
+          rescue => err
+            _debug("Unable to scrape WHOIS: #{err}", 1)
+          end
         end
 
         @web_site

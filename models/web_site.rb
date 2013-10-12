@@ -2,7 +2,7 @@ class WebSite < ActiveRecord::Base
 
   # self.per_page = 50
 
-  MAX_PAGES_COUNT = 150
+  MAX_PAGES_COUNT = 500
 
 
   # Nicer fetching by url name
@@ -52,7 +52,7 @@ class WebSite < ActiveRecord::Base
   end
   def robots_txt_url; URI.join(self.url, 'robots.txt'); end
 
-  def rescrape_robots_txt!
+  def scrape_robots_txt!
     begin
       status = Timeout::timeout(15) do # 15 seconds
         io = open(self.robots_txt_url, :read_timeout => 15, "User-Agent" => CRAWLER_USER_AGENT)
@@ -110,7 +110,7 @@ class WebSite < ActiveRecord::Base
     !self.whois_record_updated_at || (self.whois_record_updated_at + 90.days) < Time.now
   end
 
-  def rescrape_whois_record!
+  def scrape_whois_record!
     begin
       status = Timeout::timeout(15) do # 15 seconds
         c = Whois.whois(self.host_url)
@@ -140,6 +140,7 @@ class WebSite < ActiveRecord::Base
   end
 
   def reached_max_pages?; (self.web_pages_count >= MAX_PAGES_COUNT); end
+
 
 protected
   
