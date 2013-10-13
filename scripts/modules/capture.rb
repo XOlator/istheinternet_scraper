@@ -131,7 +131,7 @@ module IsTheInternet
           # We need to call the page to get correct status, headers, etc. WebDriver does not support this.
           begin
             io = open(uri.to_s, read_timeout: 15, "User-Agent" => CRAWLER_USER_AGENT, allow_redirections: :all)
-            raise "Invalid content-type" unless io.content_type.match(/text\/html/i)
+            raise IsTheInternet::InvalidContentType unless io.content_type.match(/text\/html/i)
 
             # Additional information
             @web_page.assign_attributes(
@@ -142,6 +142,10 @@ module IsTheInternet
               page_status: io.status[0],
               available: true
             )
+          rescue IsTheInternet::InvalidContentType => err
+            @web_page.update_attribute(:available, false)
+            raise err
+
           rescue => err # OpenURI::HTTPError => err
             @web_page.update_attribute(:available, false)
             raise err.to_s
@@ -280,10 +284,10 @@ module IsTheInternet
 
       # Initially open the web page in WebDriver
       def verify_web_page
-        raise "URL is invalid: #{@url}" if uri.blank?
-        raise "Web Site is invalid: #{@url}" if web_site.blank? || web_site.new_record?
-        raise "Web Page is invalid: #{@url}" if web_page.blank? || web_page.new_record?
-        raise "Max page count (#{WebSite::MAX_PAGES_COUNT}) reached for #{@url}" if web_site.reached_max_pages?
+        raise IsTheInternet::InvalidURI if uri.blank?
+        raise IsTheInternet::InvalidWebSite if web_site.blank? || web_site.new_record?
+        raise IsTheInternet::InvalidWebPage if web_page.blank? || web_page.new_record?
+        raise IsTheInternet::MaxScrapeLimit if web_site.reached_max_pages?
       end
 
       # -----------------------------------------------------------------------
@@ -319,6 +323,10 @@ module IsTheInternet
         rescue Timeout::Error => err
           _error("Timeout error: #{err}", 1)
           error!(err)
+
+        rescue IsTheInternet::MaxScrapeLimit, IsTheInternet::InvalidURI, IsTheInternet::InvalidWebSite, IsTheInternet::InvalidWebPage => err
+          _error("#{err}: #{@uri}", 1)
+          # error!(err)
 
         rescue => err
           ActiveRecord::Base.connection.reconnect! if err.to_s.match(/mysql/i)
