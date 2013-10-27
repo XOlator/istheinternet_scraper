@@ -50,3 +50,36 @@ end
 def add_to_blacklist(url)
   IsTheInternet::Page::Blacklist.add(url)
 end
+
+def purge_queue
+  host_maxed, ss = [], Sidekiq::Queue.new.size
+
+  Sidekiq::Queue.new.each do |v|
+    begin
+      uri = Addressable::URI.parse(v['args'][0])
+      host = uri.host.gsub(/\Awww\./, '').downcase
+
+      if host_maxed.include?(host)
+        v.delete
+        next
+      elsif IsTheInternet::Page::Blacklist.match?(uri)
+        v.delete
+        next
+      else
+        ws = WebSite.find_by_host_url(host) rescue nil
+        if ws && ws.reached_max_pages?
+          host_maxed << host
+          v.delete
+          next
+        end
+      end
+
+    rescue => err
+      break if err.to_s.match(/mysql/i)
+      _error(err,0)
+      v.delete
+    end
+  end
+
+  (ss-Sidekiq::Queue.new.size)
+end

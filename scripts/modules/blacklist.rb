@@ -2,6 +2,8 @@ module IsTheInternet
   module Page
     class Blacklist
 
+      def self.cache; @@cache ||= []; end
+
       def self.add(url)
         url = address(url)
         return false if url.blank?
@@ -11,9 +13,15 @@ module IsTheInternet
       def self.match?(url)
         url = address(url)
         return false if url.blank?
-        !UrlBlacklist.find_by_url(url).blank?
+        return true if cache.include?(url)
+        
+        if !UrlBlacklist.find_by_url(url).blank?
+          @@cache << url
+          return true
+        else
+          return false
+        end
       end
-
 
     protected
 
