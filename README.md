@@ -1,13 +1,13 @@
-# What.IsTheInter.net/?
+# WhatColor.IsTheInter.net/? Web Scraper
 
-[What.IsTheInter.net/?][whatistheinternet] Seriously, what is it?
+[WhatColor.IsTheInter.net/?][whatcoloristheinternet] Seriously, what is it?
 
-[whatistheinternet]: http://what.istheinter.net/?
+[whatcoloristheinternet]: http://whatcolor.istheinter.net/?
 
 
 ### About
 
-The IsTheInter.net web scraper is a core compontent in collecting information about the Internet (well, at least the www of it).
+WhatColor.IsTheInter.net web scraper is a core compontent in collecting information about the Internet (well, at least the www of it).
 
 
 ### Functionality
@@ -22,7 +22,7 @@ _Information soon_
 
 ### License
 
-The IsTheInter.net web scraper is released under a [MIT License][mitlicense]. Please attribute accordingly.
+WhatColor.IsTheInter.net web scraper is released under a [MIT License][mitlicense]. Please attribute accordingly.
 
 [mitlicense]: LICENSE.md
 
@@ -30,7 +30,7 @@ The IsTheInter.net web scraper is released under a [MIT License][mitlicense]. Pl
 ### Credits
 
 (C) 2013 by [Greg Leuch][gleuch] & [XOlator][xolator].
-Made in part with help from [Eyebeam][eyebeam]
+Made in part with help from [Eyebeam][eyebeam].
 
 [gleuch]: http://gleu.ch
 [xolator]: http://xolator.com
