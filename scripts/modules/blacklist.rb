@@ -15,7 +15,7 @@ module IsTheInternet
         return false if url.blank?
         return true if cache.include?(url)
         
-        if !UrlBlacklist.find_by_url(url).blank?
+        if !UrlBlacklist.where("url = ? OR LOCATE(url,?)", url, url).blank?
           @@cache << url
           return true
         else
